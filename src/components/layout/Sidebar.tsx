@@ -34,10 +34,13 @@ export function Sidebar() {
         ))}
       </nav>
       <div className="px-3 pb-6">
-        <button className="flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium text-sidebar-foreground hover:bg-muted w-full transition-all">
+        <a
+          href="/auth"
+          className="flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium text-sidebar-foreground hover:bg-muted w-full transition-all"
+        >
           <LogOut className="h-5 w-5" />
           Logout
-        </button>
+        </a>
       </div>
     </aside>
   );
