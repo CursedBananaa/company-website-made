@@ -2,6 +2,7 @@ import { Search, ChevronDown } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { NotificationDropdown } from "@/components/NotificationDropdown";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Link } from "react-router-dom";
 
 export function Header() {
@@ -21,14 +22,12 @@ export function Header() {
           English
           <ChevronDown className="h-4 w-4" />
         </button>
-        <Link to="/profile" className="flex items-center gap-2 ml-2 hover:opacity-80 transition-opacity cursor-pointer">
-          <div className="grid grid-cols-2 gap-0.5">
-            <div className="w-2 h-2 bg-destructive rounded-sm" />
-            <div className="w-2 h-2 bg-success rounded-sm" />
-            <div className="w-2 h-2 bg-chart-blue rounded-sm" />
-            <div className="w-2 h-2 bg-pending rounded-sm" />
-          </div>
-          <span className="font-medium text-sm text-foreground">MicroSoft</span>
+        <Link to="/profile" className="flex items-center gap-3 ml-3 hover:opacity-80 transition-opacity cursor-pointer">
+          <Avatar className="h-8 w-8">
+            <AvatarImage src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face" />
+            <AvatarFallback className="bg-primary text-primary-foreground text-xs">JD</AvatarFallback>
+          </Avatar>
+          <span className="font-medium text-sm text-foreground">John Doe</span>
         </Link>
       </div>
     </header>
