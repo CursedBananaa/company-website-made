@@ -2,6 +2,7 @@ import { Search, ChevronDown } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { NotificationDropdown } from "@/components/NotificationDropdown";
+import { Link } from "react-router-dom";
 
 export function Header() {
   return (
@@ -20,7 +21,7 @@ export function Header() {
           English
           <ChevronDown className="h-4 w-4" />
         </button>
-        <div className="flex items-center gap-2 ml-2">
+        <Link to="/profile" className="flex items-center gap-2 ml-2 hover:opacity-80 transition-opacity cursor-pointer">
           <div className="grid grid-cols-2 gap-0.5">
             <div className="w-2 h-2 bg-destructive rounded-sm" />
             <div className="w-2 h-2 bg-success rounded-sm" />
@@ -28,7 +29,7 @@ export function Header() {
             <div className="w-2 h-2 bg-pending rounded-sm" />
           </div>
           <span className="font-medium text-sm text-foreground">MicroSoft</span>
-        </div>
+        </Link>
       </div>
     </header>
   );
