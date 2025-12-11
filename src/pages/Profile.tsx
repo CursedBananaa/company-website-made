@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useRef } from "react";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -8,20 +8,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Camera, Mail, Phone, MapPin, Briefcase, Save } from "lucide-react";
 import { toast } from "sonner";
+import { useProfile } from "@/contexts/ProfileContext";
 
 export default function Profile() {
-  const [profile, setProfile] = useState({
-    firstName: "John",
-    lastName: "Doe",
-    email: "john.doe@example.com",
-    phone: "+1 234 567 890",
-    location: "New York, USA",
-    role: "Administrator",
-    bio: "Passionate about technology and education. Managing teams and building great products.",
-  });
-  const [avatarUrl, setAvatarUrl] = useState(
-    "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face"
-  );
+  const { profile, updateProfile } = useProfile();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleSave = () => {
@@ -41,7 +31,7 @@ export default function Profile() {
       }
       const reader = new FileReader();
       reader.onload = (event) => {
-        setAvatarUrl(event.target?.result as string);
+        updateProfile({ avatarUrl: event.target?.result as string });
         toast.success("Profile image updated!");
       };
       reader.readAsDataURL(file);
@@ -70,7 +60,7 @@ export default function Profile() {
                     className="hidden"
                   />
                   <Avatar className="h-24 w-24 cursor-pointer" onClick={handleAvatarClick}>
-                    <AvatarImage src={avatarUrl} />
+                    <AvatarImage src={profile.avatarUrl} />
                     <AvatarFallback className="bg-primary text-primary-foreground text-2xl">
                       {profile.firstName[0]}{profile.lastName[0]}
                     </AvatarFallback>
@@ -124,9 +114,7 @@ export default function Profile() {
                   <Input
                     id="firstName"
                     value={profile.firstName}
-                    onChange={(e) =>
-                      setProfile({ ...profile, firstName: e.target.value })
-                    }
+                    onChange={(e) => updateProfile({ firstName: e.target.value })}
                     className="bg-muted border-input"
                   />
                 </div>
@@ -135,9 +123,7 @@ export default function Profile() {
                   <Input
                     id="lastName"
                     value={profile.lastName}
-                    onChange={(e) =>
-                      setProfile({ ...profile, lastName: e.target.value })
-                    }
+                    onChange={(e) => updateProfile({ lastName: e.target.value })}
                     className="bg-muted border-input"
                   />
                 </div>
@@ -149,9 +135,7 @@ export default function Profile() {
                   id="email"
                   type="email"
                   value={profile.email}
-                  onChange={(e) =>
-                    setProfile({ ...profile, email: e.target.value })
-                  }
+                  onChange={(e) => updateProfile({ email: e.target.value })}
                   className="bg-muted border-input"
                 />
               </div>
@@ -162,9 +146,7 @@ export default function Profile() {
                   <Input
                     id="phone"
                     value={profile.phone}
-                    onChange={(e) =>
-                      setProfile({ ...profile, phone: e.target.value })
-                    }
+                    onChange={(e) => updateProfile({ phone: e.target.value })}
                     className="bg-muted border-input"
                   />
                 </div>
@@ -173,9 +155,7 @@ export default function Profile() {
                   <Input
                     id="location"
                     value={profile.location}
-                    onChange={(e) =>
-                      setProfile({ ...profile, location: e.target.value })
-                    }
+                    onChange={(e) => updateProfile({ location: e.target.value })}
                     className="bg-muted border-input"
                   />
                 </div>
@@ -186,9 +166,7 @@ export default function Profile() {
                 <Textarea
                   id="bio"
                   value={profile.bio}
-                  onChange={(e) =>
-                    setProfile({ ...profile, bio: e.target.value })
-                  }
+                  onChange={(e) => updateProfile({ bio: e.target.value })}
                   className="bg-muted border-input min-h-[100px]"
                 />
               </div>
