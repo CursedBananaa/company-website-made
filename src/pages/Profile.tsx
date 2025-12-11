@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -19,9 +19,33 @@ export default function Profile() {
     role: "Administrator",
     bio: "Passionate about technology and education. Managing teams and building great products.",
   });
+  const [avatarUrl, setAvatarUrl] = useState(
+    "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face"
+  );
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleSave = () => {
     toast.success("Profile updated successfully!");
+  };
+
+  const handleAvatarClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (file.size > 5 * 1024 * 1024) {
+        toast.error("Image size should be less than 5MB");
+        return;
+      }
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        setAvatarUrl(event.target?.result as string);
+        toast.success("Profile image updated!");
+      };
+      reader.readAsDataURL(file);
+    }
   };
 
   return (
@@ -38,8 +62,15 @@ export default function Profile() {
             <CardContent className="pt-6">
               <div className="flex flex-col items-center text-center">
                 <div className="relative">
-                  <Avatar className="h-24 w-24">
-                    <AvatarImage src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face" />
+                  <input
+                    type="file"
+                    ref={fileInputRef}
+                    onChange={handleFileChange}
+                    accept="image/*"
+                    className="hidden"
+                  />
+                  <Avatar className="h-24 w-24 cursor-pointer" onClick={handleAvatarClick}>
+                    <AvatarImage src={avatarUrl} />
                     <AvatarFallback className="bg-primary text-primary-foreground text-2xl">
                       {profile.firstName[0]}{profile.lastName[0]}
                     </AvatarFallback>
@@ -48,6 +79,7 @@ export default function Profile() {
                     size="icon"
                     variant="secondary"
                     className="absolute -bottom-1 -right-1 h-8 w-8 rounded-full"
+                    onClick={handleAvatarClick}
                   >
                     <Camera className="h-4 w-4" />
                   </Button>
