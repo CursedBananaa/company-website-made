@@ -4,8 +4,11 @@ import { ThemeToggle } from "@/components/ThemeToggle";
 import { NotificationDropdown } from "@/components/NotificationDropdown";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Link } from "react-router-dom";
+import { useProfile } from "@/contexts/ProfileContext";
 
 export function Header() {
+  const { profile } = useProfile();
+
   return (
     <header className="h-16 bg-card border-b border-border flex items-center justify-between px-6">
       <div className="relative w-80">
@@ -24,10 +27,14 @@ export function Header() {
         </button>
         <Link to="/profile" className="flex items-center gap-3 ml-3 hover:opacity-80 transition-opacity cursor-pointer">
           <Avatar className="h-8 w-8">
-            <AvatarImage src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face" />
-            <AvatarFallback className="bg-primary text-primary-foreground text-xs">JD</AvatarFallback>
+            <AvatarImage src={profile.avatarUrl} />
+            <AvatarFallback className="bg-primary text-primary-foreground text-xs">
+              {profile.firstName[0]}{profile.lastName[0]}
+            </AvatarFallback>
           </Avatar>
-          <span className="font-medium text-sm text-foreground">John Doe</span>
+          <span className="font-medium text-sm text-foreground">
+            {profile.firstName} {profile.lastName}
+          </span>
         </Link>
       </div>
     </header>
