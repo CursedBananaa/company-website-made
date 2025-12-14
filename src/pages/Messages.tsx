@@ -5,9 +5,11 @@ import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Search, Phone, Video, Image, Paperclip, Mic, Send, Plus, CheckCheck, X, FileText, Play, Pause, Users } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Search, Phone, Video, Image, Paperclip, Mic, Send, Plus, CheckCheck, X, FileText, Play, Pause, Users, UserPlus, Trash2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { toast } from "sonner";
 
 interface Contact {
   id: string;
@@ -64,17 +66,19 @@ const contacts: Contact[] = [
   { id: "7", name: "Alfred Murray", avatar: "AM", lastMessage: "aliquam ullamcorper a at eu ut libero amet arcu ipsum...", time: "8Pm", role: "DevOps", email: "alfred@example.com", phone: "+1 234 567 896" },
 ];
 
-const groupMembers: GroupMember[] = [
+const initialGroupMembers: GroupMember[] = [
   { id: "m1", name: "John Doe", avatar: "JD", avatarUrl: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face", role: "Team Lead", isOnline: true },
   { id: "m2", name: "Sarah Wilson", avatar: "SW", avatarUrl: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150&h=150&fit=crop&crop=face", role: "Designer", isOnline: true },
   { id: "m3", name: "Mike Chen", avatar: "MC", avatarUrl: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop&crop=face", role: "Developer", isOnline: false },
   { id: "m4", name: "Emily Brown", avatar: "EB", avatarUrl: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150&h=150&fit=crop&crop=face", role: "Developer", isOnline: true },
+  { id: "m5", name: "David Lee", avatar: "DL", avatarUrl: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&h=150&fit=crop&crop=face", role: "QA Engineer", isOnline: false },
+  { id: "m6", name: "Lisa Park", avatar: "LP", avatarUrl: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=150&h=150&fit=crop&crop=face", role: "Designer", isOnline: true },
 ];
 
-const groups: Group[] = [
-  { id: "g1", name: "App Development", avatar: "AD", members: groupMembers.slice(0, 4), description: "Main development team for the mobile app project" },
-  { id: "g2", name: "Backend", avatar: "BE", members: groupMembers.slice(1, 3), description: "Backend API development team" },
-  { id: "g3", name: "UI&UX Design", avatar: "UX", members: groupMembers.slice(0, 2), description: "Design team for all UI/UX work" },
+const initialGroups: Group[] = [
+  { id: "g1", name: "App Development", avatar: "AD", members: initialGroupMembers.slice(0, 4), description: "Main development team for the mobile app project" },
+  { id: "g2", name: "Backend", avatar: "BE", members: initialGroupMembers.slice(1, 3), description: "Backend API development team" },
+  { id: "g3", name: "UI&UX Design", avatar: "UX", members: initialGroupMembers.slice(0, 2), description: "Design team for all UI/UX work" },
 ];
 
 const chatMessages: Message[] = [
@@ -197,14 +201,50 @@ const sharedDocuments = [
 export default function Messages() {
   const [selectedContact, setSelectedContact] = useState<Contact | null>(contacts[0]);
   const [selectedGroup, setSelectedGroup] = useState<Group | null>(null);
+  const [groups, setGroups] = useState<Group[]>(initialGroups);
   const [messageInput, setMessageInput] = useState("");
   const [isInfoPanelOpen, setIsInfoPanelOpen] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
   const [recordingTime, setRecordingTime] = useState(0);
   const [playingVoice, setPlayingVoice] = useState<string | null>(null);
+  const [isAddMemberOpen, setIsAddMemberOpen] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const imageInputRef = useRef<HTMLInputElement>(null);
   const recordingIntervalRef = useRef<NodeJS.Timeout | null>(null);
+
+  const availableMembers = initialGroupMembers.filter(
+    member => !selectedGroup?.members.some(m => m.id === member.id)
+  );
+
+  const handleAddMember = (member: GroupMember) => {
+    if (!selectedGroup) return;
+    
+    const updatedGroups = groups.map(g => 
+      g.id === selectedGroup.id 
+        ? { ...g, members: [...g.members, member] }
+        : g
+    );
+    setGroups(updatedGroups);
+    setSelectedGroup(updatedGroups.find(g => g.id === selectedGroup.id) || null);
+    toast.success(`${member.name} added to ${selectedGroup.name}`);
+    setIsAddMemberOpen(false);
+  };
+
+  const handleRemoveMember = (memberId: string) => {
+    if (!selectedGroup) return;
+    
+    const memberToRemove = selectedGroup.members.find(m => m.id === memberId);
+    const updatedGroups = groups.map(g => 
+      g.id === selectedGroup.id 
+        ? { ...g, members: g.members.filter(m => m.id !== memberId) }
+        : g
+    );
+    setGroups(updatedGroups);
+    setSelectedGroup(updatedGroups.find(g => g.id === selectedGroup.id) || null);
+    if (memberToRemove) {
+      toast.success(`${memberToRemove.name} removed from ${selectedGroup.name}`);
+    }
+  };
 
   const handleContactClick = (contact: Contact) => {
     setSelectedContact(contact);
@@ -656,14 +696,25 @@ export default function Messages() {
                 {/* Group Members */}
                 {selectedGroup && (
                   <div className="mb-6">
-                    <h4 className="font-semibold text-sm mb-3">
-                      Members ({selectedGroup.members.length})
-                    </h4>
+                    <div className="flex items-center justify-between mb-3">
+                      <h4 className="font-semibold text-sm">
+                        Members ({selectedGroup.members.length})
+                      </h4>
+                      <Button 
+                        variant="ghost" 
+                        size="sm" 
+                        className="h-7 px-2 text-primary"
+                        onClick={() => setIsAddMemberOpen(true)}
+                      >
+                        <UserPlus className="h-4 w-4 mr-1" />
+                        Add
+                      </Button>
+                    </div>
                     <div className="space-y-2">
                       {selectedGroup.members.map((member) => (
                         <div
                           key={member.id}
-                          className="flex items-center gap-3 p-2 rounded-lg hover:bg-muted transition-colors"
+                          className="flex items-center gap-3 p-2 rounded-lg hover:bg-muted transition-colors group"
                         >
                           <div className="relative">
                             <Avatar className="w-10 h-10">
@@ -680,6 +731,14 @@ export default function Messages() {
                             <p className="text-sm font-medium">{member.name}</p>
                             <p className="text-xs text-muted-foreground">{member.role}</p>
                           </div>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-7 w-7 opacity-0 group-hover:opacity-100 transition-opacity text-destructive hover:text-destructive hover:bg-destructive/10"
+                            onClick={() => handleRemoveMember(member.id)}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
                         </div>
                       ))}
                     </div>
@@ -727,6 +786,44 @@ export default function Messages() {
             </ScrollArea>
           </SheetContent>
         </Sheet>
+
+        {/* Add Member Dialog */}
+        <Dialog open={isAddMemberOpen} onOpenChange={setIsAddMemberOpen}>
+          <DialogContent className="sm:max-w-[400px]">
+            <DialogHeader>
+              <DialogTitle>Add Member to {selectedGroup?.name}</DialogTitle>
+            </DialogHeader>
+            <div className="py-4">
+              {availableMembers.length === 0 ? (
+                <p className="text-sm text-muted-foreground text-center py-4">
+                  No available members to add
+                </p>
+              ) : (
+                <div className="space-y-2">
+                  {availableMembers.map((member) => (
+                    <div
+                      key={member.id}
+                      className="flex items-center gap-3 p-3 rounded-lg hover:bg-muted transition-colors cursor-pointer"
+                      onClick={() => handleAddMember(member)}
+                    >
+                      <Avatar className="w-10 h-10">
+                        <AvatarImage src={member.avatarUrl} />
+                        <AvatarFallback className="bg-primary/20 text-primary text-sm">
+                          {member.avatar}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div className="flex-1">
+                        <p className="text-sm font-medium">{member.name}</p>
+                        <p className="text-xs text-muted-foreground">{member.role}</p>
+                      </div>
+                      <UserPlus className="h-4 w-4 text-primary" />
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </DialogContent>
+        </Dialog>
       </div>
     </DashboardLayout>
   );

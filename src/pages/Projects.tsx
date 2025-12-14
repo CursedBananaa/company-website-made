@@ -1,9 +1,11 @@
+import { useState } from "react";
 import { Plus, Edit, Trash2 } from "lucide-react";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { useNavigate } from "react-router-dom";
+import { AddProjectDialog } from "@/components/AddProjectDialog";
 
 const projects = [
   {
@@ -91,19 +93,31 @@ const projects = [
 
 export default function Projects() {
   const navigate = useNavigate();
+  const [isAddProjectOpen, setIsAddProjectOpen] = useState(false);
 
   return (
     <DashboardLayout>
       <div className="space-y-6">
         <div className="flex justify-between items-center">
           <h1 className="text-2xl font-semibold">Projects</h1>
-          <Button
-            className="bg-primary hover:bg-primary/90"
-            onClick={() => navigate("/applicants")}
-          >
-            View Applicant
-          </Button>
+          <div className="flex gap-3">
+            <Button
+              className="bg-primary hover:bg-primary/90"
+              onClick={() => setIsAddProjectOpen(true)}
+            >
+              Add Project
+            </Button>
+            <Button
+              variant="outline"
+              className="border-primary text-primary hover:bg-primary hover:text-primary-foreground"
+              onClick={() => navigate("/applicants")}
+            >
+              View Applicant
+            </Button>
+          </div>
         </div>
+
+        <AddProjectDialog open={isAddProjectOpen} onOpenChange={setIsAddProjectOpen} />
 
         <div className="grid grid-cols-3 gap-4">
           {projects.map((project, index) => (
