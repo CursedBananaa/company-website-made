@@ -125,9 +125,6 @@ export default function Projects() {
               <CardContent className="p-4 space-y-3">
                 <div className="flex justify-between items-start">
                   <h3 className="font-semibold">{project.name}</h3>
-                  <button className="w-6 h-6 rounded-full bg-chart-green flex items-center justify-center">
-                    <Plus className="h-4 w-4 text-success-foreground" />
-                  </button>
                 </div>
 
                 <div className="flex items-center gap-2">
