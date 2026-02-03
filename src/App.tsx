@@ -14,6 +14,7 @@ import Messages from "./pages/Messages";
 import Settings from "./pages/Settings";
 import Profile from "./pages/Profile";
 import Auth from "./pages/Auth";
+import Payment from "./pages/Payment";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -36,6 +37,7 @@ const App = () => (
               <Route path="/messages" element={<Messages />} />
               <Route path="/settings" element={<Settings />} />
               <Route path="/profile" element={<Profile />} />
+              <Route path="/payment" element={<Payment />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </BrowserRouter>

@@ -53,6 +53,7 @@ export default function Home() {
             <Button
               variant="outline"
               className="border-primary text-primary hover:bg-primary hover:text-primary-foreground px-6 hover:shadow-[0_0_20px_hsl(var(--primary)/0.4)] transition-all duration-300"
+              onClick={() => navigate("/payment")}
             >
               <Wallet className="h-4 w-4 mr-2" />
               PAY
