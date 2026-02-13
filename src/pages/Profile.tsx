@@ -177,6 +177,56 @@ export default function Profile() {
               </Button>
             </CardContent>
           </Card>
+
+          {/* Company Details (Only for company role) */}
+          {profile.role === 'company' && (
+            <Card className="lg:col-span-3 bg-card border-border">
+              <CardHeader>
+                <CardTitle>Company Details</CardTitle>
+                <CardDescription>Manage your company information</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <div className="space-y-2">
+                    <Label htmlFor="industry">Industry</Label>
+                    <Input
+                      id="industry"
+                      value={profile.industry || ""}
+                      onChange={(e) => updateProfile({ industry: e.target.value })}
+                      className="bg-muted border-input"
+                      placeholder="e.g. Technology, Healthcare"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="website">Website</Label>
+                    <Input
+                      id="website"
+                      value={profile.website || ""}
+                      onChange={(e) => updateProfile({ website: e.target.value })}
+                      className="bg-muted border-input"
+                      placeholder="https://example.com"
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="description">Company Description</Label>
+                  <Textarea
+                    id="description"
+                    value={profile.description || ""}
+                    onChange={(e) => updateProfile({ description: e.target.value })}
+                    className="bg-muted border-input min-h-[100px]"
+                    placeholder="Tell us about your company..."
+                  />
+                </div>
+
+                <Button onClick={handleSave} className="gap-2">
+                  <Save className="h-4 w-4" />
+                  Save Company Details
+                </Button>
+              </CardContent>
+            </Card>
+          )}
         </div>
       </div>
     </DashboardLayout>

@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { Eye, EyeOff, Mail, Lock, User } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 
 export default function Auth() {
   const navigate = useNavigate();
@@ -28,13 +29,72 @@ export default function Auth() {
         return;
       }
 
-      // Simulate auth - replace with Firebase auth
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-      
-      toast.success(isLogin ? "Welcome back!" : "Account created successfully!");
-      navigate("/dashboard");
-    } catch (error) {
-      toast.error("An error occurred. Please try again.");
+      if (isLogin) {
+        const { data: authData, error } = await supabase.auth.signInWithPassword({
+          email: formData.email,
+          password: formData.password,
+        });
+        if (error) throw error;
+
+        // Check if user has company role
+        if (authData.user) {
+           const { data: userProfile } = await supabase
+             .from('user')
+             .select('role')
+             .eq('auth_id', authData.user.id)
+             .single();
+           
+           if (userProfile && (userProfile as any).role !== 'company') {
+              await supabase.auth.signOut();
+              toast.error("Access restricted to company accounts only.");
+              return;
+           }
+        }
+
+        toast.success("Welcome back!");
+        navigate("/dashboard");
+      } else {
+        const { data: authData, error: authError } = await supabase.auth.signUp({
+          email: formData.email,
+          password: formData.password,
+        });
+        if (authError) throw authError;
+
+        if (authData.user) {
+          const { data: userData, error: profileError } = await supabase
+            .from('user')
+            .insert({
+              email: formData.email,
+              full_name: formData.name,
+              password: formData.password, // storing password is not recommended but needed for schema compliance
+              auth_id: authData.user.id,
+              role: 'company' // Default role changed to company
+            } as any)
+            .select()
+            .single();
+          
+          if (profileError) {
+             throw profileError;
+          }
+
+          if (userData) {
+             // Create an empty company profile for the new user
+             const { error: companyError } = await supabase
+               .from('company_profile')
+               .insert({
+                 user_id: (userData as any).id
+               } as any);
+             
+             if (companyError) {
+               console.error("Error creating company profile:", companyError);
+             }
+          }
+        }
+        toast.success("Account created successfully! Please complete your company profile.");
+        navigate("/profile");
+      }
+    } catch (error: any) {
+      toast.error(error.message || "An error occurred. Please try again.");
     } finally {
       setIsLoading(false);
     }

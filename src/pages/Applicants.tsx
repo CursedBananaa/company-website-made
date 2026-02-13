@@ -4,73 +4,33 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Gift } from "lucide-react";
 
-const applicants = [
-  {
-    name: "Christine Brooks",
-    skills: "ui&ux",
-    project: "project B",
-    status: "pending" as const,
-    showPay: false,
-  },
-  {
-    name: "Christine Brooks",
-    skills: "Backend",
-    project: "project A",
-    status: "accepted" as const,
-    showPay: true,
-  },
-  {
-    name: "Rosie Pearson",
-    skills: "Frontend",
-    project: "project C",
-    status: "rejected" as const,
-    showPay: false,
-  },
-  {
-    name: "Darrell Caldwell",
-    skills: "Mobile App",
-    project: "project III",
-    status: "accepted" as const,
-    showPay: true,
-  },
-  {
-    name: "Gilbert Johnston",
-    skills: "Web Devlopment",
-    project: "project F",
-    status: "accepted" as const,
-    showPay: true,
-  },
-  {
-    name: "Alan Cain",
-    skills: "Web Devlopment",
-    project: "project D",
-    status: "rejected" as const,
-    showPay: false,
-  },
-  {
-    name: "Alfred Murray",
-    skills: "ui&ux",
-    project: "project Z",
-    status: "accepted" as const,
-    showPay: true,
-  },
-  {
-    name: "Maggie Sullivan",
-    skills: "Backend",
-    project: "project W",
-    status: "accepted" as const,
-    showPay: true,
-  },
-  {
-    name: "Rosie Todd",
-    skills: "Web Devlopment",
-    project: "project J",
-    status: "pending" as const,
-    showPay: false,
-  },
-];
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 
 export default function Applicants() {
+  const { data: applicants, isLoading } = useQuery({
+    queryKey: ['applications'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('application')
+        .select(`
+          *,
+          opportunity (
+            title
+          ),
+          student_profile (
+            major,
+            user (
+              full_name
+            )
+          )
+        `);
+      
+      if (error) throw error;
+      return data;
+    },
+  });
+
   return (
     <DashboardLayout>
       <div className="space-y-6">
@@ -96,17 +56,24 @@ export default function Applicants() {
                 </tr>
               </thead>
               <tbody>
-                {applicants.map((applicant, index) => (
+                {isLoading ? (
+                   <tr><td colSpan={4} className="p-4 text-center">Loading applications...</td></tr>
+                ) : applicants?.map((applicant: any, index: number) => (
                   <tr key={index} className="border-b border-border last:border-0">
-                    <td className="p-4 text-sm">{applicant.name}</td>
-                    <td className="p-4 text-sm text-muted-foreground">
-                      {applicant.skills}
+                    <td className="p-4 text-sm">
+                      {applicant.student_profile?.user?.full_name || "Unknown"}
                     </td>
-                    <td className="p-4 text-sm">{applicant.project}</td>
+                    <td className="p-4 text-sm text-muted-foreground">
+                      {applicant.student_profile?.major || "N/A"}
+                    </td>
+                    <td className="p-4 text-sm">
+                      {applicant.opportunity?.title || "Unknown"}
+                    </td>
                     <td className="p-4">
                       <div className="flex items-center gap-2">
-                        <StatusBadge status={applicant.status} />
-                        {applicant.showPay && (
+                        <StatusBadge status={applicant.status || 'pending'} />
+                        {/* Logic for showPay based on status could go here */}
+                        {applicant.status === 'accepted' && (
                           <Button
                             size="sm"
                             className="bg-chart-green hover:bg-chart-green/90 text-success-foreground"

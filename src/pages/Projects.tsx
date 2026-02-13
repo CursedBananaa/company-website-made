@@ -1,4 +1,8 @@
+import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
+
+// ... existing code ...
 import { Plus, Edit, Trash2 } from "lucide-react";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { StatusBadge } from "@/components/ui/status-badge";
@@ -7,93 +11,30 @@ import { Card, CardContent } from "@/components/ui/card";
 import { useNavigate } from "react-router-dom";
 import { AddProjectDialog } from "@/components/AddProjectDialog";
 
-const projects = [
-  {
-    name: "progect A",
-    status: "active" as const,
-    assignee: "Christine Brooks",
-    createdBy: "Jane smith",
-    details: "UI&UX To Disen Web TO Comang...",
-    deadline: "28/7/2024",
-    price: "$500$",
-  },
-  {
-    name: "progect B",
-    status: "pending" as const,
-    assignee: "Christine Brooks",
-    createdBy: "Jane smith",
-    details: "UI&UX To Disen Web TO Comang...",
-    deadline: "28/7/2024",
-    price: "290$",
-  },
-  {
-    name: "progect C",
-    status: "draft" as const,
-    assignee: "Christine Brooks",
-    createdBy: "Jane smith",
-    details: "UI&UX To Disen Web TO Comang...",
-    deadline: "28/7/2024",
-    price: "$500$",
-  },
-  {
-    name: "progect D",
-    status: "active" as const,
-    assignee: "Christine Brooks",
-    createdBy: "Jane smith",
-    details: "UI&UX To Disen Web TO Comang...",
-    deadline: "28/7/2024",
-    price: "$500$",
-  },
-  {
-    name: "progect E",
-    status: "complete" as const,
-    assignee: "Rosie Pearson",
-    createdBy: "Jane smith",
-    details: "UI&UX To Disen Web TO Comang...",
-    deadline: "28/7/2024",
-    price: "$500$",
-  },
-  {
-    name: "progect B",
-    status: "pending" as const,
-    assignee: "Christine Brooks",
-    createdBy: "Jane smith",
-    details: "UI&UX To Disen Web TO Comang...",
-    deadline: "28/7/2024",
-    price: "290$",
-  },
-  {
-    name: "progect A",
-    status: "active" as const,
-    assignee: "Christine Brooks",
-    createdBy: "Jane smith",
-    details: "UI&UX To Disen Web TO Comang...",
-    deadline: null,
-    price: null,
-  },
-  {
-    name: "progect F",
-    status: "draft" as const,
-    assignee: "Christine Brooks",
-    createdBy: "Jane smith",
-    details: "UI&UX To Disen Web TO Comang...",
-    deadline: null,
-    price: null,
-  },
-  {
-    name: "progect I",
-    status: "pending" as const,
-    assignee: "Christine Brooks",
-    createdBy: "Jane smith",
-    details: "UI&UX To Disen Web TO Comang...",
-    deadline: null,
-    price: null,
-  },
-];
+
 
 export default function Projects() {
   const navigate = useNavigate();
   const [isAddProjectOpen, setIsAddProjectOpen] = useState(false);
+
+  const { data: projects, isLoading } = useQuery({
+    queryKey: ['projects'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('opportunity')
+        .select(`
+          *,
+          company_profile (
+            user (
+              full_name
+            )
+          )
+        `);
+      
+      if (error) throw error;
+      return data;
+    },
+  });
 
   return (
     <DashboardLayout>
@@ -119,39 +60,43 @@ export default function Projects() {
 
         <AddProjectDialog open={isAddProjectOpen} onOpenChange={setIsAddProjectOpen} />
 
-        <div className="grid grid-cols-3 gap-4">
-          {projects.map((project, index) => (
-            <Card key={index} className="relative">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {isLoading ? (
+            <p>Loading projects...</p>
+          ) : projects?.map((project: any) => (
+            <Card key={project.id} className="relative">
               <CardContent className="p-4 space-y-3">
                 <div className="flex justify-between items-start">
-                  <h3 className="font-semibold">{project.name}</h3>
+                  <h3 className="font-semibold">{project.title}</h3>
                 </div>
 
                 <div className="flex items-center gap-2">
-                  <StatusBadge status={project.status} />
+                  <StatusBadge status="active" /> 
                   <span className="text-sm text-muted-foreground">
-                    {project.assignee}
+                    {/* Assignee logic could go here if we had it */}
                   </span>
                 </div>
 
                 <div className="text-sm">
-                  <span className="text-muted-foreground">creatred By</span>
-                  <span className="ml-4">{project.createdBy}</span>
+                  <span className="text-muted-foreground">Created By</span>
+                  <span className="ml-4">
+                    {project.company_profile?.user?.full_name || "Unknown"}
+                  </span>
                 </div>
 
-                <p className="text-xs text-muted-foreground">
-                  DETAILS: {project.details}
+                <p className="text-xs text-muted-foreground line-clamp-2">
+                  DETAILS: {project.description}
                 </p>
 
                 {project.deadline && (
                   <p className="text-xs text-muted-foreground">
-                    Deadline:{project.deadline}
+                    Deadline: {new Date(project.deadline).toLocaleDateString()}
                   </p>
                 )}
 
-                {project.price && (
+                {project.amount_of_money && (
                   <p className="text-xs text-muted-foreground">
-                    price: {project.price}
+                    Price: {project.amount_of_money}$
                   </p>
                 )}
 
@@ -166,7 +111,7 @@ export default function Projects() {
                     className="border-primary text-primary hover:bg-primary hover:text-primary-foreground"
                   >
                     <Trash2 className="h-3 w-3 mr-1" />
-                    Delet
+                    Delete
                   </Button>
                 </div>
               </CardContent>

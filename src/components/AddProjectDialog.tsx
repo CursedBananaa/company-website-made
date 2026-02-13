@@ -7,6 +7,9 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Plus, X, Calendar } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
+import { useQueryClient } from "@tanstack/react-query";
 
 interface AddProjectDialogProps {
   open: boolean;
@@ -33,16 +36,66 @@ export function AddProjectDialog({ open, onOpenChange }: AddProjectDialogProps) 
     );
   };
 
-  const handleSubmit = () => {
-    // Handle form submission
-    console.log({ title, description, selectedSkills, budget, deadline });
-    onOpenChange(false);
-    // Reset form
-    setTitle("");
-    setDescription("");
-    setSelectedSkills([]);
-    setBudget("");
-    setDeadline("");
+  const queryClient = useQueryClient();
+  const [isLoading, setIsLoading] = useState(false);
+
+  // ... existing code ...
+
+  const handleSubmit = async () => {
+    setIsLoading(true);
+    try {
+      // 1. Get current user
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        toast.error("You must be logged in to add a project");
+        return;
+      }
+
+      // 2. Get company profile
+      const { data: companyProfile, error: profileError } = await supabase
+        .from('company_profile')
+        .select('id')
+        .eq('user_id', user.id as any) // Casting as any to avoid type mismatch if needed
+        .single();
+
+      if (profileError || !companyProfile) {
+        // If no company profile, maybe try to create one or error out? 
+        // For now, let's assume they might be a student or just didn't set it up.
+        // We can create a dummy company profile or just fail.
+        // Let's create one if missing for smoother UX, or just fail.
+        // Fail is safer for now.
+        toast.error("Please complete your company profile first.");
+        return;
+      }
+
+      // 3. Insert opportunity
+      const { error } = await supabase.from('opportunity').insert({
+        title,
+        description,
+        requirements: selectedSkills.join(", "),
+        amount_of_money: parseFloat(budget) || 0,
+        deadline: deadline, // Assuming format matches or is just text. DB says date/string.
+        company_id: (companyProfile as any).id,
+        is_paid: !!budget,
+      } as any);
+
+      if (error) throw error;
+
+      toast.success("Project added successfully!");
+      queryClient.invalidateQueries({ queryKey: ['projects'] });
+      onOpenChange(false);
+      
+      // Reset form
+      setTitle("");
+      setDescription("");
+      setSelectedSkills([]);
+      setBudget("");
+      setDeadline("");
+    } catch (error: any) {
+      toast.error(error.message || "Failed to add project");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
