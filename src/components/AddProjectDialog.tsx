@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -15,6 +15,7 @@ import { useProfile } from "@/contexts/ProfileContext";
 interface AddProjectDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  projectToEdit?: any; // Pass the project object if editing
 }
 
 const suggestedSkills = [
@@ -30,7 +31,7 @@ const locationTypes = [
   "On-site", "Remote", "Hybrid"
 ];
 
-export function AddProjectDialog({ open, onOpenChange }: AddProjectDialogProps) {
+export function AddProjectDialog({ open, onOpenChange, projectToEdit }: AddProjectDialogProps) {
   const { profile } = useProfile();
   
   const [title, setTitle] = useState("");
@@ -42,6 +43,53 @@ export function AddProjectDialog({ open, onOpenChange }: AddProjectDialogProps) 
   const [budget, setBudget] = useState("");
   const [deadline, setDeadline] = useState("");
   const [duration, setDuration] = useState("");
+
+  const queryClient = useQueryClient();
+  const [isLoading, setIsLoading] = useState(false);
+
+  useEffect(() => {
+    if (open) {
+      if (projectToEdit) {
+        // Edit mode: Populate form
+        setTitle(projectToEdit.title || "");
+        setDescription(projectToEdit.description || "");
+        
+        // Parse Type and Location
+        const fullType = projectToEdit.type || "";
+        const parts = fullType.split(" ");
+        // Heuristic: Check if the last part is a location type
+        const lastPart = parts[parts.length - 1];
+        if (locationTypes.includes(lastPart)) {
+            setLocation(lastPart);
+            setType(parts.slice(0, -1).join(" "));
+        } else {
+            // Default fallback if parsing fails or old data
+            setType(fullType);
+            setLocation("");
+        }
+
+        // Parse Skills
+        const reqs = projectToEdit.requirements || "";
+        setSelectedSkills(reqs.split(" ").filter((s: string) => s.length > 0));
+
+        setBudget(projectToEdit.amount_of_money?.toString() || "");
+        setDeadline(projectToEdit.deadline ? projectToEdit.deadline.split('T')[0] : "");
+        setDuration(projectToEdit.duration?.toString() || "");
+      } else {
+        // Add mode: Reset form
+        setTitle("");
+        setType("");
+        setLocation("");
+        setDescription("");
+        setSelectedSkills([]);
+        setBudget("");
+        setDeadline("");
+        setDuration("");
+        setCurrentSkill("");
+      }
+    }
+  }, [open, projectToEdit]);
+
 
   const handleSkillAdd = (skill: string) => {
     const trimmedSkill = skill.trim();
@@ -62,8 +110,6 @@ export function AddProjectDialog({ open, onOpenChange }: AddProjectDialogProps) 
     setSelectedSkills(selectedSkills.filter(skill => skill !== skillToRemove));
   };
 
-  const queryClient = useQueryClient();
-  const [isLoading, setIsLoading] = useState(false);
 
   const handleSubmit = async () => {
     if (!profile.companyId) {
@@ -73,37 +119,43 @@ export function AddProjectDialog({ open, onOpenChange }: AddProjectDialogProps) 
 
     setIsLoading(true);
     try {
-      // Insert opportunity
-      const { error } = await supabase.from('opportunity').insert({
+      const projectData = {
         title,
         type: `${type} ${location}`.trim(),
         description,
         requirements: selectedSkills.join(" "),
         amount_of_money: parseFloat(budget) || 0,
         deadline: deadline ? new Date(deadline).toISOString() : null,
-        duration: parseFloat(duration) || 0, // This is now treated as days by the user, saved as number
+        duration: parseFloat(duration) || 0,
         company_id: profile.companyId,
         is_paid: (parseFloat(budget) || 0) > 0,
-      });
+      };
+
+      let error;
+      if (projectToEdit) {
+        // Update
+        const { error: updateError } = await supabase
+          .from('opportunity')
+          .update(projectData as any)
+          .eq('id', projectToEdit.id);
+        error = updateError;
+      } else {
+        // Insert
+        const { error: insertError } = await supabase
+          .from('opportunity')
+          .insert(projectData as any);
+        error = insertError;
+      }
 
       if (error) throw error;
 
-      toast.success("Project added successfully!");
+      toast.success(projectToEdit ? "Project updated successfully!" : "Project added successfully!");
       queryClient.invalidateQueries({ queryKey: ['projects'] });
       onOpenChange(false);
       
-      // Reset form
-      setTitle("");
-      setType("");
-      setLocation("");
-      setDescription("");
-      setSelectedSkills([]);
-      setBudget("");
-      setDeadline("");
-      setDuration("");
     } catch (error: any) {
       console.error(error);
-      toast.error(error.message || "Failed to add project");
+      toast.error(error.message || "Failed to save project");
     } finally {
       setIsLoading(false);
     }
@@ -113,7 +165,9 @@ export function AddProjectDialog({ open, onOpenChange }: AddProjectDialogProps) 
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="text-2xl font-semibold italic">Add Project</DialogTitle>
+          <DialogTitle className="text-2xl font-semibold italic">
+            {projectToEdit ? "Edit Project" : "Add Project"}
+          </DialogTitle>
         </DialogHeader>
         
         <div className="space-y-6 py-4">
@@ -266,7 +320,7 @@ export function AddProjectDialog({ open, onOpenChange }: AddProjectDialogProps) 
               disabled={isLoading}
               className="bg-primary hover:bg-primary/90 px-8"
             >
-              {isLoading ? "Adding..." : "Add Project"}
+              {isLoading ? "Saving..." : (projectToEdit ? "Save Changes" : "Add Project")}
             </Button>
           </div>
         </div>

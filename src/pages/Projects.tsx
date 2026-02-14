@@ -1,8 +1,6 @@
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-
-// ... existing code ...
 import { Plus, Edit, Trash2 } from "lucide-react";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { StatusBadge } from "@/components/ui/status-badge";
@@ -10,16 +8,21 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { useNavigate } from "react-router-dom";
 import { AddProjectDialog } from "@/components/AddProjectDialog";
-
-
+import { useProfile } from "@/contexts/ProfileContext";
+import { toast } from "sonner";
 
 export default function Projects() {
   const navigate = useNavigate();
   const [isAddProjectOpen, setIsAddProjectOpen] = useState(false);
+  const [editingProject, setEditingProject] = useState<any>(null);
+  const { profile } = useProfile();
+  const queryClient = useQueryClient();
 
   const { data: projects, isLoading } = useQuery({
-    queryKey: ['projects'],
+    queryKey: ['projects', profile.companyId],
     queryFn: async () => {
+      if (!profile.companyId) return [];
+
       const { data, error } = await supabase
         .from('opportunity')
         .select(`
@@ -29,12 +32,45 @@ export default function Projects() {
               full_name
             )
           )
-        `);
+        `)
+        .eq('company_id', profile.companyId);
       
       if (error) throw error;
       return data;
     },
+    enabled: !!profile.companyId,
   });
+
+  const handleDelete = async (id: number) => {
+    if (!confirm("Are you sure you want to delete this project?")) return;
+
+    try {
+      const { error } = await supabase
+        .from('opportunity')
+        .delete()
+        .eq('id', id);
+
+      if (error) throw error;
+
+      toast.success("Project deleted successfully");
+      queryClient.invalidateQueries({ queryKey: ['projects'] });
+    } catch (error) {
+      console.error("Error deleting project:", error);
+      toast.error("Failed to delete project");
+    }
+  };
+
+  const handleEdit = (project: any) => {
+    setEditingProject(project);
+    setIsAddProjectOpen(true);
+  };
+
+  const handleOpenChange = (open: boolean) => {
+    setIsAddProjectOpen(open);
+    if (!open) {
+      setEditingProject(null);
+    }
+  };
 
   return (
     <DashboardLayout>
@@ -58,11 +94,17 @@ export default function Projects() {
           </div>
         </div>
 
-        <AddProjectDialog open={isAddProjectOpen} onOpenChange={setIsAddProjectOpen} />
+        <AddProjectDialog 
+          open={isAddProjectOpen} 
+          onOpenChange={handleOpenChange} 
+          projectToEdit={editingProject}
+        />
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {isLoading ? (
             <p>Loading projects...</p>
+          ) : projects?.length === 0 ? (
+             <p className="text-muted-foreground">No projects found for your company.</p>
           ) : projects?.map((project: any) => (
             <Card key={project.id} className="relative">
               <CardContent className="p-4 space-y-3">
@@ -101,7 +143,11 @@ export default function Projects() {
                 )}
 
                 <div className="flex gap-2">
-                  <Button size="sm" className="bg-primary hover:bg-primary/90">
+                  <Button 
+                    size="sm" 
+                    className="bg-primary hover:bg-primary/90"
+                    onClick={() => handleEdit(project)}
+                  >
                     <Edit className="h-3 w-3 mr-1" />
                     Edit
                   </Button>
@@ -109,6 +155,7 @@ export default function Projects() {
                     size="sm"
                     variant="outline"
                     className="border-primary text-primary hover:bg-primary hover:text-primary-foreground"
+                    onClick={() => handleDelete(project.id)}
                   >
                     <Trash2 className="h-3 w-3 mr-1" />
                     Delete
