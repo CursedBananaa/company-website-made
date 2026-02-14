@@ -6,6 +6,7 @@ import { Gift } from "lucide-react";
 
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { Application, Opportunity, StudentProfile, User } from "@/types";
 
 export default function Applicants() {
   const { data: applicants, isLoading } = useQuery({
@@ -58,7 +59,7 @@ export default function Applicants() {
               <tbody>
                 {isLoading ? (
                    <tr><td colSpan={4} className="p-4 text-center">Loading applications...</td></tr>
-                ) : applicants?.map((applicant: any, index: number) => (
+                ) : applicants?.map((applicant: Application & { opportunity: Opportunity | null, student_profile: (StudentProfile & { user: User | null }) | null }, index: number) => (
                   <tr key={index} className="border-b border-border last:border-0">
                     <td className="p-4 text-sm">
                       {applicant.student_profile?.user?.full_name || "Unknown"}

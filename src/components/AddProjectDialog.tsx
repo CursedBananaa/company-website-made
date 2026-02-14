@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -6,14 +6,16 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { Plus, X, Calendar } from "lucide-react";
+import { Plus, Calendar } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
+import { Opportunity } from "@/types";
 
 interface AddProjectDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  projectToEdit?: Opportunity;
 }
 
 const suggestedSkills = [
@@ -21,12 +23,34 @@ const suggestedSkills = [
   "Social", "Photo Shop", "cyber sec", "Marketing", "Testing"
 ];
 
-export function AddProjectDialog({ open, onOpenChange }: AddProjectDialogProps) {
+export function AddProjectDialog({ open, onOpenChange, projectToEdit }: AddProjectDialogProps) {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [selectedSkills, setSelectedSkills] = useState<string[]>([]);
   const [budget, setBudget] = useState("");
   const [deadline, setDeadline] = useState("");
+
+  const queryClient = useQueryClient();
+  const [isLoading, setIsLoading] = useState(false);
+
+  useEffect(() => {
+    if (open) {
+      if (projectToEdit) {
+        setTitle(projectToEdit.title || "");
+        setDescription(projectToEdit.description || "");
+        setSelectedSkills(projectToEdit.requirements ? projectToEdit.requirements.split(", ").filter(Boolean) : []);
+        setBudget(projectToEdit.amount_of_money?.toString() || "");
+        setDeadline(projectToEdit.deadline || "");
+      } else {
+        // Reset form if opening in add mode
+        setTitle("");
+        setDescription("");
+        setSelectedSkills([]);
+        setBudget("");
+        setDeadline("");
+      }
+    }
+  }, [open, projectToEdit]);
 
   const handleSkillToggle = (skill: string) => {
     setSelectedSkills(prev => 
@@ -36,63 +60,74 @@ export function AddProjectDialog({ open, onOpenChange }: AddProjectDialogProps) 
     );
   };
 
-  const queryClient = useQueryClient();
-  const [isLoading, setIsLoading] = useState(false);
-
-  // ... existing code ...
-
   const handleSubmit = async () => {
     setIsLoading(true);
     try {
       // 1. Get current user
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
+      const { data: { user: authUser } } = await supabase.auth.getUser();
+      if (!authUser) {
         toast.error("You must be logged in to add a project");
         return;
       }
 
-      // 2. Get company profile
+      // 2. Get public user profile first
+      const { data: userData, error: userError } = await supabase
+        .from('user')
+        .select('id')
+        .eq('auth_id', authUser.id)
+        .single();
+        
+      if (userError || !userData) {
+        toast.error("User profile not found. Please contact support.");
+        return;
+      }
+
+      // 3. Get company profile using the public user id
       const { data: companyProfile, error: profileError } = await supabase
         .from('company_profile')
         .select('id')
-        .eq('user_id', user.id as any) // Casting as any to avoid type mismatch if needed
+        .eq('user_id', userData.id)
         .single();
 
       if (profileError || !companyProfile) {
-        // If no company profile, maybe try to create one or error out? 
-        // For now, let's assume they might be a student or just didn't set it up.
-        // We can create a dummy company profile or just fail.
-        // Let's create one if missing for smoother UX, or just fail.
-        // Fail is safer for now.
         toast.error("Please complete your company profile first.");
         return;
       }
 
-      // 3. Insert opportunity
-      const { error } = await supabase.from('opportunity').insert({
+      // 4. Insert or Update opportunity
+      const projectData = {
         title,
         description,
         requirements: selectedSkills.join(", "),
         amount_of_money: parseFloat(budget) || 0,
-        deadline: deadline, // Assuming format matches or is just text. DB says date/string.
-        company_id: (companyProfile as any).id,
+        deadline: deadline,
+        company_id: companyProfile.id,
         is_paid: !!budget,
-      } as any);
+      };
 
-      if (error) throw error;
+      if (projectToEdit) {
+        // Update existing project
+        const { error } = await supabase
+          .from('opportunity')
+          .update(projectData)
+          .eq('id', projectToEdit.id);
 
-      toast.success("Project added successfully!");
+        if (error) throw error;
+        toast.success("Project updated successfully!");
+      } else {
+        // Insert new project
+        const { error } = await supabase
+          .from('opportunity')
+          .insert(projectData);
+
+        if (error) throw error;
+        toast.success("Project added successfully!");
+      }
+
       queryClient.invalidateQueries({ queryKey: ['projects'] });
       onOpenChange(false);
-      
-      // Reset form
-      setTitle("");
-      setDescription("");
-      setSelectedSkills([]);
-      setBudget("");
-      setDeadline("");
-    } catch (error: any) {
-      toast.error(error.message || "Failed to add project");
+    } catch (error) {
+      toast.error((error as Error).message || "Failed to save project");
     } finally {
       setIsLoading(false);
     }
@@ -102,7 +137,9 @@ export function AddProjectDialog({ open, onOpenChange }: AddProjectDialogProps) 
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="text-2xl font-semibold italic">Add Project</DialogTitle>
+          <DialogTitle className="text-2xl font-semibold italic">
+            {projectToEdit ? "Edit Project" : "Add Project"}
+          </DialogTitle>
         </DialogHeader>
         
         <div className="space-y-6 py-4">
@@ -207,8 +244,9 @@ export function AddProjectDialog({ open, onOpenChange }: AddProjectDialogProps) 
             <Button 
               onClick={handleSubmit}
               className="bg-primary hover:bg-primary/90 px-8"
+              disabled={isLoading}
             >
-              Add Project
+              {isLoading ? (projectToEdit ? "Updating..." : "Adding...") : (projectToEdit ? "Update Project" : "Add Project")}
             </Button>
           </div>
         </div>

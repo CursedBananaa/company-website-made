@@ -1,6 +1,7 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { User, CompanyProfile, UserUpdate, CompanyProfileUpdate } from "@/types";
 
 interface ProfileData {
   firstName: string;
@@ -64,13 +65,15 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
           }
 
           if (userData) {
-            const safeUserData = userData as any;
+            const safeUserData = userData as User & { company_profile: CompanyProfile[] | CompanyProfile | null };
             // Split full_name into first and last name
             const names = (safeUserData.full_name || "").split(' ');
             const firstName = names[0] || "";
             const lastName = names.slice(1).join(' ') || "";
 
-            const companyData = safeUserData.company_profile?.[0] || safeUserData.company_profile || {};
+            const companyData = Array.isArray(safeUserData.company_profile) 
+              ? safeUserData.company_profile[0] 
+              : safeUserData.company_profile || {};
 
             setProfile({
               firstName,
@@ -105,7 +108,7 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
       if (!authUser) return;
 
       // Prepare user table updates
-      const userUpdates: any = {};
+      const userUpdates: UserUpdate = {};
       
       if (data.firstName || data.lastName) {
         const fName = data.firstName !== undefined ? data.firstName : profile.firstName;
@@ -121,7 +124,6 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
       if (Object.keys(userUpdates).length > 0) {
         const { error } = await supabase
           .from('user')
-          // @ts-ignore
           .update(userUpdates)
           .eq('auth_id', authUser.id);
         
@@ -129,7 +131,7 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
       }
 
       // Prepare company_profile updates
-      const companyUpdates: any = {};
+      const companyUpdates: CompanyProfileUpdate = {};
       if (data.website !== undefined) companyUpdates.website = data.website;
       if (data.industry !== undefined) companyUpdates.industry = data.industry;
       if (data.description !== undefined) companyUpdates.description = data.description;
@@ -149,9 +151,8 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
          if (userData) {
             const { error: companyError } = await supabase
               .from('company_profile')
-              // @ts-ignore
               .update(companyUpdates)
-              .eq('user_id', (userData as any).id);
+              .eq('user_id', userData.id);
             
             if (companyError) throw companyError;
          }

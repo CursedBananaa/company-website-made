@@ -1,6 +1,8 @@
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
+import { Opportunity, CompanyProfile, User } from "@/types";
 
 // ... existing code ...
 import { Plus, Edit, Trash2 } from "lucide-react";
@@ -16,6 +18,25 @@ import { AddProjectDialog } from "@/components/AddProjectDialog";
 export default function Projects() {
   const navigate = useNavigate();
   const [isAddProjectOpen, setIsAddProjectOpen] = useState(false);
+  const [editingProject, setEditingProject] = useState<Opportunity | undefined>(undefined);
+  const queryClient = useQueryClient();
+
+  const handleDelete = async (id: number) => {
+    if (confirm("Are you sure you want to delete this project?")) {
+      const { error } = await supabase.from('opportunity').delete().eq('id', id);
+      if (error) {
+        toast.error("Failed to delete project");
+      } else {
+        toast.success("Project deleted successfully");
+        queryClient.invalidateQueries({ queryKey: ['projects'] });
+      }
+    }
+  };
+
+  const handleEdit = (project: Opportunity) => {
+    setEditingProject(project);
+    setIsAddProjectOpen(true);
+  };
 
   const { data: projects, isLoading } = useQuery({
     queryKey: ['projects'],
@@ -58,12 +79,19 @@ export default function Projects() {
           </div>
         </div>
 
-        <AddProjectDialog open={isAddProjectOpen} onOpenChange={setIsAddProjectOpen} />
+        <AddProjectDialog 
+          open={isAddProjectOpen} 
+          onOpenChange={(open) => {
+            setIsAddProjectOpen(open);
+            if (!open) setEditingProject(undefined);
+          }} 
+          projectToEdit={editingProject}
+        />
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {isLoading ? (
             <p>Loading projects...</p>
-          ) : projects?.map((project: any) => (
+          ) : projects?.map((project: Opportunity & { company_profile: (CompanyProfile & { user: User | null }) | null }) => (
             <Card key={project.id} className="relative">
               <CardContent className="p-4 space-y-3">
                 <div className="flex justify-between items-start">
@@ -101,7 +129,11 @@ export default function Projects() {
                 )}
 
                 <div className="flex gap-2">
-                  <Button size="sm" className="bg-primary hover:bg-primary/90">
+                  <Button 
+                    size="sm" 
+                    className="bg-primary hover:bg-primary/90"
+                    onClick={() => handleEdit(project)}
+                  >
                     <Edit className="h-3 w-3 mr-1" />
                     Edit
                   </Button>
@@ -109,6 +141,7 @@ export default function Projects() {
                     size="sm"
                     variant="outline"
                     className="border-primary text-primary hover:bg-primary hover:text-primary-foreground"
+                    onClick={() => handleDelete(project.id)}
                   >
                     <Trash2 className="h-3 w-3 mr-1" />
                     Delete

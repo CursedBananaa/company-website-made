@@ -1,15 +1,26 @@
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import { Eye, EyeOff, Mail, Lock, User } from "lucide-react";
+import { Eye, EyeOff, Mail, Lock, User as UserIcon } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { User } from "@/types";
 
 export default function Auth() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const [isLogin, setIsLogin] = useState(true);
+
+  useEffect(() => {
+    const mode = searchParams.get("mode");
+    if (mode === "signup") {
+      setIsLogin(false);
+    } else {
+      setIsLogin(true);
+    }
+  }, [searchParams]);
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
@@ -44,7 +55,8 @@ export default function Auth() {
              .eq('auth_id', authData.user.id)
              .single();
            
-           if (userProfile && (userProfile as any).role !== 'company') {
+           
+           if (userProfile && (userProfile as User).role !== 'company') {
               await supabase.auth.signOut();
               toast.error("Access restricted to company accounts only.");
               return;
@@ -61,40 +73,73 @@ export default function Auth() {
         if (authError) throw authError;
 
         if (authData.user) {
-          const { data: userData, error: profileError } = await supabase
+          // Check if user already exists
+          const { data: existingUser } = await supabase
             .from('user')
-            .insert({
-              email: formData.email,
-              full_name: formData.name,
-              password: formData.password, // storing password is not recommended but needed for schema compliance
-              auth_id: authData.user.id,
-              role: 'company' // Default role changed to company
-            } as any)
-            .select()
+            .select('*')
+            .eq('email', formData.email)
             .single();
+
+          let userData = existingUser;
+          let profileError = null;
+
+          if (!existingUser) {
+            const { data: newUser, error } = await supabase
+              .from('user')
+              .insert({
+                email: formData.email,
+                full_name: formData.name,
+                password: formData.password,
+                auth_id: authData.user.id,
+                role: 'company'
+              })
+              .select()
+              .single();
+            
+            userData = newUser;
+            profileError = error;
+          } else {
+             // If user exists but auth_id is different (e.g. legacy/manual), update it? 
+             // Or just proceed. safely. 
+             // For now, if found by email, we assume it's the correct record usage.
+             // We might want to ensure auth_id matches if strictly coupling.
+             if (existingUser.auth_id !== authData.user.id) {
+               // Update auth_id to match current session
+                await supabase.from('user').update({ auth_id: authData.user.id }).eq('id', existingUser.id);
+             }
+          }
           
           if (profileError) {
              throw profileError;
           }
 
           if (userData) {
-             // Create an empty company profile for the new user
-             const { error: companyError } = await supabase
+             // Check if company profile exists
+             const { data: existingCompany } = await supabase
                .from('company_profile')
-               .insert({
-                 user_id: (userData as any).id
-               } as any);
-             
-             if (companyError) {
-               console.error("Error creating company profile:", companyError);
+               .select('id')
+               .eq('user_id', userData.id)
+               .single();
+
+             if (!existingCompany) {
+               // Create an empty company profile for the new user
+               const { error: companyError } = await supabase
+                 .from('company_profile')
+                 .insert({
+                   user_id: userData.id
+                 });
+               
+               if (companyError) {
+                 console.error("Error creating company profile:", companyError);
+               }
              }
           }
         }
         toast.success("Account created successfully! Please complete your company profile.");
         navigate("/profile");
       }
-    } catch (error: any) {
-      toast.error(error.message || "An error occurred. Please try again.");
+    } catch (error) {
+      toast.error((error as Error).message || "An error occurred. Please try again.");
     } finally {
       setIsLoading(false);
     }
@@ -150,7 +195,7 @@ export default function Auth() {
               <div className="space-y-2">
                 <Label htmlFor="name">Full Name</Label>
                 <div className="relative">
-                  <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <UserIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                   <Input
                     id="name"
                     type="text"
