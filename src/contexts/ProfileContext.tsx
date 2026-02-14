@@ -3,6 +3,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
 interface ProfileData {
+  userId?: number;
+  companyId?: number;
   firstName: string;
   lastName: string;
   email: string;
@@ -20,6 +22,7 @@ interface ProfileData {
 interface ProfileContextType {
   profile: ProfileData;
   updateProfile: (data: Partial<ProfileData>) => void;
+  loading: boolean;
 }
 
 const defaultProfile: ProfileData = {
@@ -50,6 +53,7 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
             .select(`
               *,
               company_profile (
+                id,
                 website,
                 industry,
                 description
@@ -70,9 +74,12 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
             const firstName = names[0] || "";
             const lastName = names.slice(1).join(' ') || "";
 
-            const companyData = safeUserData.company_profile?.[0] || safeUserData.company_profile || {};
-
+            const companyProfiles = safeUserData.company_profile || [];
+            const companyData = Array.isArray(companyProfiles) ? companyProfiles[0] : companyProfiles;
+            
             setProfile({
+              userId: safeUserData.id,
+              companyId: companyData?.id,
               firstName,
               lastName,
               email: safeUserData.email,
@@ -81,9 +88,9 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
               role: safeUserData.role || "student",
               bio: safeUserData.bio || "",
               avatarUrl: safeUserData.profile_picture || "",
-              website: companyData.website || "",
-              industry: companyData.industry || "",
-              description: companyData.description || "",
+              website: companyData?.website || "",
+              industry: companyData?.industry || "",
+              description: companyData?.description || "",
             });
           }
         }
