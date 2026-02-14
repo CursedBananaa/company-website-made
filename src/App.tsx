@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import { ProfileProvider } from "@/contexts/ProfileContext";
+import { RequireProfileCompletion } from "@/components/RequireProfileCompletion";
 import Index from "./pages/Index";
 import Dashboard from "./pages/Dashboard";
 import Projects from "./pages/Projects";
@@ -30,14 +31,45 @@ const App = () => (
             <Routes>
               <Route path="/" element={<Index />} />
               <Route path="/auth" element={<Auth />} />
-              <Route path="/dashboard" element={<Dashboard />} />
-              <Route path="/projects" element={<Projects />} />
-              <Route path="/applicants" element={<Applicants />} />
-              <Route path="/students" element={<Students />} />
-              <Route path="/messages" element={<Messages />} />
-              <Route path="/settings" element={<Settings />} />
+              
+              {/* Protected Routes that require profile completion */}
+              <Route path="/dashboard" element={
+                <RequireProfileCompletion>
+                  <Dashboard />
+                </RequireProfileCompletion>
+              } />
+              <Route path="/projects" element={
+                <RequireProfileCompletion>
+                  <Projects />
+                </RequireProfileCompletion>
+              } />
+              <Route path="/applicants" element={
+                <RequireProfileCompletion>
+                  <Applicants />
+                </RequireProfileCompletion>
+              } />
+              <Route path="/students" element={
+                <RequireProfileCompletion>
+                  <Students />
+                </RequireProfileCompletion>
+              } />
+              <Route path="/messages" element={
+                <RequireProfileCompletion>
+                  <Messages />
+                </RequireProfileCompletion>
+              } />
+              <Route path="/settings" element={
+                <RequireProfileCompletion>
+                  <Settings />
+                </RequireProfileCompletion>
+              } />
+              <Route path="/payment" element={
+                <RequireProfileCompletion>
+                  <Payment />
+                </RequireProfileCompletion>
+              } />
+
               <Route path="/profile" element={<Profile />} />
-              <Route path="/payment" element={<Payment />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </BrowserRouter>

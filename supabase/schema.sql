@@ -100,3 +100,24 @@ CREATE POLICY "Enable read access for all users" ON public.application FOR SELEC
 -- Allow insert/update based on ownership (Simplified)
 CREATE POLICY "Enable insert for authenticated users" ON public.opportunity FOR INSERT WITH CHECK (auth.role() = 'authenticated');
 CREATE POLICY "Enable insert for authenticated users" ON public.application FOR INSERT WITH CHECK (auth.role() = 'authenticated');
+
+-- User update policy
+CREATE POLICY "Users can update own profile" ON public.user FOR UPDATE USING (auth.uid() = auth_id);
+
+-- Company Profile policies
+CREATE POLICY "Users can insert own company profile" ON public.company_profile FOR INSERT WITH CHECK (
+  user_id IN (SELECT id FROM public.user WHERE auth_id = auth.uid())
+);
+
+CREATE POLICY "Users can update own company profile" ON public.company_profile FOR UPDATE USING (
+  user_id IN (SELECT id FROM public.user WHERE auth_id = auth.uid())
+);
+
+-- Student Profile policies
+CREATE POLICY "Users can insert own student profile" ON public.student_profile FOR INSERT WITH CHECK (
+  user_id IN (SELECT id FROM public.user WHERE auth_id = auth.uid())
+);
+
+CREATE POLICY "Users can update own student profile" ON public.student_profile FOR UPDATE USING (
+  user_id IN (SELECT id FROM public.user WHERE auth_id = auth.uid())
+);

@@ -186,6 +186,12 @@ export default function Profile() {
                 <CardDescription>Manage your company information</CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
+                {profile.role === 'company' && (!profile.website || !profile.industry || !profile.description) && (
+                  <div className="bg-destructive/15 text-destructive px-4 py-3 rounded-md flex items-center gap-3 border border-destructive/20">
+                    <div className="h-4 w-4 shrink-0 rounded-full bg-destructive/20 flex items-center justify-center">!</div>
+                    <div className="text-sm font-medium">Please complete your company profile details (Industry, Website, Description) to access all features.</div>
+                  </div>
+                )}
                 <div className="grid gap-4 sm:grid-cols-2">
                   <div className="space-y-2">
                     <Label htmlFor="industry">Industry</Label>

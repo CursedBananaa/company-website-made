@@ -135,25 +135,39 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
       if (data.description !== undefined) companyUpdates.description = data.description;
 
       if (Object.keys(companyUpdates).length > 0 && profile.role === 'company') {
-         // We need the user `id` (bigint) to update company_profile, not auth_id.
-         // But we can update via user_id foreign key if we knew the bigint id.
-         // Or we can first fetch the bigint id if we don't store it in context.
-         // BUT simpler: we can select the company id belonging to this user.
-         
          const { data: userData } = await supabase
            .from('user')
-           .select('id')
+           .select(`
+             id,
+             company_profile(id)
+           `)
            .eq('auth_id', authUser.id)
            .single();
 
          if (userData) {
-            const { error: companyError } = await supabase
-              .from('company_profile')
-              // @ts-ignore
-              .update(companyUpdates)
-              .eq('user_id', (userData as any).id);
-            
-            if (companyError) throw companyError;
+            const companyProfiles = userData.company_profile as any[];
+            const existingCompanyProfile = companyProfiles && companyProfiles.length > 0 ? companyProfiles[0] : null;
+
+            if (existingCompanyProfile) {
+              const { error: companyError } = await supabase
+                .from('company_profile')
+                // @ts-ignore
+                .update(companyUpdates)
+                .eq('id', existingCompanyProfile.id);
+              
+              if (companyError) throw companyError;
+            } else {
+              // Insert new company profile
+              const { error: companyError } = await supabase
+                .from('company_profile')
+                // @ts-ignore
+                .insert({
+                  ...companyUpdates,
+                  user_id: userData.id
+                });
+              
+              if (companyError) throw companyError;
+            }
          }
       }
 
