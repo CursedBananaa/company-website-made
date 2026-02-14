@@ -4,34 +4,37 @@ import { toast } from "sonner";
 import { useEffect, useState } from "react";
 
 export const RequireProfileCompletion = ({ children }: { children: React.ReactNode }) => {
-  const { profile } = useProfile();
+  const { profile, loading } = useProfile();
   const location = useLocation();
-  const [shouldRedirect, setShouldRedirect] = useState(false);
-
-  // If role is not company, no need to check
-  const isCompany = profile.role === 'company';
-  
-  // Check for required fields
-  const isProfileComplete = 
-    profile.website && 
-    profile.industry && 
-    profile.description;
+  const [shouldRedirectToProfile, setShouldRedirectToProfile] = useState(false);
+  const [hasShownToast, setHasShownToast] = useState(false);
 
   useEffect(() => {
-    if (isCompany && !isProfileComplete && location.pathname !== '/profile') {
-      toast.error("Please complete your company profile to continue", {
-        id: "profile-completion-toast" // Prevent duplicate toasts
-      });
-      setShouldRedirect(true);
+    if (!loading && profile.userId && profile.role === 'company') {
+        const isProfileComplete = profile.website && profile.industry && profile.description;
+        if (!isProfileComplete && location.pathname !== '/profile') {
+            if (!hasShownToast) {
+                toast.error("Please complete your company profile to continue");
+                setHasShownToast(true);
+            }
+            setShouldRedirectToProfile(true);
+        }
     }
-  }, [isCompany, isProfileComplete, location.pathname]);
+  }, [loading, profile, location.pathname, hasShownToast]);
 
-  if (shouldRedirect) {
-    return <Navigate to="/profile" replace />;
+  if (loading) {
+      return <div className="flex items-center justify-center min-h-screen">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      </div>;
   }
 
-  // If we are on profile page, allow rendering regardless of completion status
-  // If not company, allow rendering
-  // If complete, allow rendering
+  if (!profile.userId) {
+      return <Navigate to="/auth" replace />;
+  }
+
+  if (shouldRedirectToProfile) {
+      return <Navigate to="/profile" replace />;
+  }
+
   return <>{children}</>;
 };

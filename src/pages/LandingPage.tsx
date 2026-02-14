@@ -1,10 +1,12 @@
 import { useNavigate } from 'react-router-dom';
 import { useState } from 'react';
+import { useProfile } from '@/contexts/ProfileContext';
 import Cover from '../components/Cover';
 import './LandingPage.css';
 
 export default function LandingPage() {
   const navigate = useNavigate();
+  const { profile } = useProfile();
   const [coverFinished, setCoverFinished] = useState(false);
 
   return (
@@ -21,8 +23,14 @@ export default function LandingPage() {
           <a href="#">FAQ</a>
         </div>
         <div className="nav-actions">
-           <button className="btn-login" onClick={() => navigate('/auth')}>Login</button>
-           <button className="btn-register" onClick={() => navigate('/auth?mode=signup')}>Register</button>
+           {profile.userId ? (
+             <button className="btn-login" onClick={() => navigate('/dashboard')}>Dashboard</button>
+           ) : (
+             <>
+               <button className="btn-login" onClick={() => navigate('/auth')}>Login</button>
+               <button className="btn-register" onClick={() => navigate('/auth?mode=signup')}>Register</button>
+             </>
+           )}
         </div>
       </nav>
 

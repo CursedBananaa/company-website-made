@@ -11,7 +11,18 @@ const navItems = [
   { icon: Settings, label: "Settings", path: "/settings" },
 ];
 
+import { useNavigate } from "react-router-dom";
+import { useProfile } from "@/contexts/ProfileContext";
+
 export function Sidebar() {
+  const navigate = useNavigate();
+  const { signOut } = useProfile();
+
+  const handleLogout = async () => {
+    await signOut();
+    navigate("/auth");
+  };
+
   return (
     <aside className="fixed left-0 top-0 z-40 h-screen w-[180px] bg-sidebar border-r border-sidebar-border flex flex-col">
       <nav className="flex-1 px-3 py-6 space-y-1">
@@ -34,13 +45,13 @@ export function Sidebar() {
         ))}
       </nav>
       <div className="px-3 pb-6">
-        <a
-          href="/auth"
+        <button
+          onClick={handleLogout}
           className="flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium text-sidebar-foreground hover:bg-muted w-full transition-all"
         >
           <LogOut className="h-5 w-5" />
           Logout
-        </a>
+        </button>
       </div>
     </aside>
   );

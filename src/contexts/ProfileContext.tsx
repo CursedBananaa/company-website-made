@@ -44,67 +44,86 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
   const [profile, setProfile] = useState<ProfileData>(defaultProfile);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    async function fetchProfile() {
-      try {
-        const { data: { user: authUser } } = await supabase.auth.getUser();
+  const fetchProfile = async (userId: string) => {
+    try {
+      const { data: userData, error } = await supabase
+        .from('user')
+        .select(`
+          *,
+          company_profile (
+            id,
+            website,
+            industry,
+            description
+          )
+        `)
+        .eq('auth_id', userId)
+        .single();
+      
+      if (error) {
+        console.error('Error fetching profile:', error);
+        return;
+      }
+
+      if (userData) {
+        const safeUserData = userData as User & { company_profile: CompanyProfile[] | CompanyProfile | null };
+        const names = (safeUserData.full_name || "").split(' ');
+        const firstName = names[0] || "";
+        const lastName = names.slice(1).join(' ') || "";
+
+        const companyProfiles = safeUserData.company_profile || [];
+        const companyData = Array.isArray(companyProfiles) ? companyProfiles[0] : companyProfiles;
         
-        if (authUser) {
-          const { data: userData, error } = await supabase
-            .from('user')
-            .select(`
-              *,
-              company_profile (
-                id,
-                website,
-                industry,
-                description
-              )
-            `)
-            .eq('auth_id', authUser.id)
-            .single();
-          
-          if (error) {
-            console.error('Error fetching profile:', error);
-            return;
-          }
 
-          if (userData) {
-            const safeUserData = userData as User & { company_profile: CompanyProfile[] | CompanyProfile | null };
-            // Split full_name into first and last name
-            const names = (safeUserData.full_name || "").split(' ');
-            const firstName = names[0] || "";
-            const lastName = names.slice(1).join(' ') || "";
+        setProfile({
+          userId: safeUserData.id,
+          companyId: companyData?.id,
+          firstName,
+          lastName,
+          email: safeUserData.email,
+          phone: safeUserData.phone_number || "",
+          location: "Not set", 
+          role: safeUserData.role || "student",
+          bio: safeUserData.bio || "",
+          avatarUrl: safeUserData.profile_picture || "",
+          website: companyData?.website || "",
+          industry: companyData?.industry || "",
+          description: companyData?.description || "",
+        });
+      }
+    } catch (error) {
+      console.error('Error in fetchProfile:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-            const companyProfiles = safeUserData.company_profile || [];
-            const companyData = Array.isArray(companyProfiles) ? companyProfiles[0] : companyProfiles;
-            
-
-            setProfile({
-              userId: safeUserData.id,
-              companyId: companyData?.id,
-              firstName,
-              lastName,
-              email: safeUserData.email,
-              phone: safeUserData.phone_number || "",
-              location: "Not set", // Location not in user table
-              role: safeUserData.role || "student",
-              bio: safeUserData.bio || "",
-              avatarUrl: safeUserData.profile_picture || "",
-              website: companyData?.website || "",
-              industry: companyData?.industry || "",
-              description: companyData?.description || "",
-            });
-          }
-        }
-      } catch (error) {
-        console.error('Error in fetchProfile:', error);
-      } finally {
+  useEffect(() => {
+    // Check active session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session?.user) {
+        fetchProfile(session.user.id);
+      } else {
         setLoading(false);
       }
-    }
+    });
 
-    fetchProfile();
+    // Listen for auth changes
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (session?.user) {
+        // Only fetch if we don't have a profile or if the ID mismatch (though replacing profile is safer)
+        if (profile.userId === undefined) { 
+             fetchProfile(session.user.id);
+        }
+      } else {
+        setProfile(defaultProfile);
+        setLoading(false);
+      }
+    });
+
+    return () => subscription.unsubscribe();
   }, []);
 
   const updateProfile = async (data: Partial<ProfileData>) => {
