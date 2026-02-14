@@ -152,7 +152,7 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
            .single();
 
          if (userData) {
-            const companyProfiles = userData.company_profile as any[];
+             const companyProfiles = (userData as any).company_profile as any[];
             const existingCompanyProfile = companyProfiles && companyProfiles.length > 0 ? companyProfiles[0] : null;
 
             if (existingCompanyProfile) {
@@ -170,7 +170,7 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
                 // @ts-ignore
                 .insert({
                   ...companyUpdates,
-                  user_id: userData.id
+                  user_id: (userData as any).id
                 });
               
               if (companyError) throw companyError;
@@ -185,7 +185,7 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
   };
 
   return (
-    <ProfileContext.Provider value={{ profile, updateProfile }}>
+    <ProfileContext.Provider value={{ profile, updateProfile, loading }}>
       {children}
     </ProfileContext.Provider>
   );

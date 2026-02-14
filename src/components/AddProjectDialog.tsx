@@ -136,14 +136,16 @@ export function AddProjectDialog({ open, onOpenChange, projectToEdit }: AddProje
         // Update
         const { error: updateError } = await supabase
           .from('opportunity')
-          .update(projectData as any)
+          // @ts-ignore
+          .update(projectData)
           .eq('id', projectToEdit.id);
         error = updateError;
       } else {
         // Insert
         const { error: insertError } = await supabase
           .from('opportunity')
-          .insert(projectData as any);
+          // @ts-ignore
+          .insert(projectData);
         error = insertError;
       }
 
