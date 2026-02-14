@@ -1,20 +1,63 @@
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Filter, ChevronDown } from "lucide-react";
-
-const students = [
-  { id: "00001", name: "Christine Brooks", year: "1_St Year", date: "04 Sep 2019", dep: "Electric" },
-  { id: "00002", name: "Rosie Pearson", year: "3_St Year", date: "28 May 2019", dep: "computer" },
-  { id: "00003", name: "Darrell Caldwell", year: "4_St Year", date: "23 Nov 2019", dep: "Electric" },
-  { id: "00004", name: "Gilbert Johnston", year: "3St Year", date: "05 Feb 2019", dep: "Mobile" },
-  { id: "00005", name: "Alan Cain", year: "2_St Year", date: "29 Jul 2019", dep: "Watch" },
-  { id: "00006", name: "Alfred Murray", year: "4_St Year", date: "15 Aug 2019", dep: "Medicine" },
-  { id: "00007", name: "Maggie Sullivan", year: "1_St Year", date: "21 Dec 2019", dep: "Watch" },
-  { id: "00008", name: "Rosie Todd", year: "New Jon", date: "30 Apr 2019", dep: "Medicine" },
-];
+import { Filter, ChevronDown, Eye } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { useState } from "react";
+import { StudentDetailsDialog } from "@/components/StudentDetailsDialog";
 
 export default function Students() {
+  const [selectedStudent, setSelectedStudent] = useState<any>(null);
+  const [isDetailsOpen, setIsDetailsOpen] = useState(false);
+
+  // Fetch students from Supabase
+  const { data: students, isLoading } = useQuery({
+    queryKey: ['students'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('student_profile')
+        .select(`
+          *,
+          user (
+            id,
+            full_name,
+            email,
+            phone_number,
+            profile_picture,
+            bio
+          ),
+          student_skills (
+            skill_name
+          ),
+          application (
+            status,
+            created_at,
+            opportunity (
+              title,
+              is_paid,
+              company_profile (
+                industry
+              )
+            )
+          )
+        `);
+      
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  const handleViewDetails = (student: any) => {
+    setSelectedStudent(student);
+    setIsDetailsOpen(true);
+  };
+
+  const handleOpenChange = (open: boolean) => {
+    setIsDetailsOpen(open);
+    if (!open) setSelectedStudent(null);
+  };
+
   return (
     <DashboardLayout>
       <div className="space-y-6">
@@ -22,7 +65,7 @@ export default function Students() {
 
         <Card>
           <CardContent className="p-0">
-            {/* Filter Bar */}
+            {/* Filter Bar - kept as visual placeholder for now */}
             <div className="flex items-center gap-4 p-4 border-b border-border bg-muted/50">
               <Button variant="ghost" size="sm" className="text-muted-foreground">
                 <Filter className="h-4 w-4 mr-2" />
@@ -41,36 +84,67 @@ export default function Students() {
                 <ChevronDown className="h-4 w-4 ml-1" />
               </Button>
               <Button variant="ghost" size="sm" className="text-muted-foreground">
-                student Member
+                Department
                 <ChevronDown className="h-4 w-4 ml-1" />
               </Button>
             </div>
 
             {/* Table */}
-            <table className="w-full">
-              <thead>
-                <tr className="border-b border-border bg-muted/30">
-                  <th className="text-left p-4 font-medium text-muted-foreground">ID</th>
-                  <th className="text-left p-4 font-medium text-muted-foreground">NAME</th>
-                  <th className="text-left p-4 font-medium text-muted-foreground">Std-Year</th>
-                  <th className="text-left p-4 font-medium text-muted-foreground">DATE</th>
-                  <th className="text-left p-4 font-medium text-muted-foreground">Dep</th>
-                </tr>
-              </thead>
-              <tbody>
-                {students.map((student, index) => (
-                  <tr key={index} className="border-b border-border last:border-0 hover:bg-muted/20 transition-colors">
-                    <td className="p-4 text-sm text-muted-foreground">{student.id}</td>
-                    <td className="p-4 text-sm">{student.name}</td>
-                    <td className="p-4 text-sm text-muted-foreground">{student.year}</td>
-                    <td className="p-4 text-sm text-muted-foreground">{student.date}</td>
-                    <td className="p-4 text-sm text-muted-foreground">{student.dep}</td>
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead>
+                  <tr className="border-b border-border bg-muted/30">
+                    <th className="text-left p-4 font-medium text-muted-foreground">ID</th>
+                    <th className="text-left p-4 font-medium text-muted-foreground">NAME</th>
+                    <th className="text-left p-4 font-medium text-muted-foreground">Std-Year</th>
+                    <th className="text-left p-4 font-medium text-muted-foreground">Joined Date</th>
+                    <th className="text-left p-4 font-medium text-muted-foreground">Major</th>
+                    <th className="text-left p-4 font-medium text-muted-foreground">Actions</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {isLoading ? (
+                    <tr>
+                      <td colSpan={6} className="p-8 text-center text-muted-foreground">Loading students...</td>
+                    </tr>
+                  ) : students?.length === 0 ? (
+                    <tr>
+                      <td colSpan={6} className="p-8 text-center text-muted-foreground">No students found.</td>
+                    </tr>
+                  ) : students?.map((student: any) => (
+                    <tr key={student.id} className="border-b border-border last:border-0 hover:bg-muted/20 transition-colors">
+                      <td className="p-4 text-sm text-muted-foreground">#{student.id}</td>
+                      <td className="p-4 text-sm font-medium">{student.user?.full_name || "Unknown"}</td>
+                      <td className="p-4 text-sm text-muted-foreground">{student.grad_year || "N/A"}</td>
+                      {/* Using profile creation date as joined date for now */}
+                      <td className="p-4 text-sm text-muted-foreground">
+                        {new Date(student.created_at).toLocaleDateString()}
+                      </td>
+                      <td className="p-4 text-sm text-muted-foreground">{student.major || "N/A"}</td>
+                      <td className="p-4">
+                        <Button 
+                          variant="ghost" 
+                          size="sm"
+                          className="hover:bg-primary/10 hover:text-primary"
+                          onClick={() => handleViewDetails(student)}
+                        >
+                          <Eye className="h-4 w-4 mr-1" />
+                          View
+                        </Button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </CardContent>
         </Card>
+
+        <StudentDetailsDialog 
+          open={isDetailsOpen} 
+          onOpenChange={handleOpenChange} 
+          student={selectedStudent} 
+        />
       </div>
     </DashboardLayout>
   );
