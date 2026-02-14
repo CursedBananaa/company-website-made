@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { Plus, X, Calendar } from "lucide-react";
+import { Plus, Calendar, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
@@ -131,25 +131,24 @@ export function AddProjectDialog({ open, onOpenChange, projectToEdit }: AddProje
         is_paid: (parseFloat(budget) || 0) > 0,
       };
 
-      let error;
       if (projectToEdit) {
         // Update
-        const { error: updateError } = await supabase
+        const { error } = await supabase
           .from('opportunity')
           // @ts-ignore
           .update(projectData)
           .eq('id', projectToEdit.id);
-        error = updateError;
+        
+        if (error) throw error;
       } else {
         // Insert
-        const { error: insertError } = await supabase
+        const { error } = await supabase
           .from('opportunity')
           // @ts-ignore
           .insert(projectData);
-        error = insertError;
+          
+        if (error) throw error;
       }
-
-      if (error) throw error;
 
       toast.success(projectToEdit ? "Project updated successfully!" : "Project added successfully!");
       queryClient.invalidateQueries({ queryKey: ['projects'] });
@@ -321,6 +320,7 @@ export function AddProjectDialog({ open, onOpenChange, projectToEdit }: AddProje
               onClick={handleSubmit}
               disabled={isLoading}
               className="bg-primary hover:bg-primary/90 px-8"
+              disabled={isLoading}
             >
               {isLoading ? "Saving..." : (projectToEdit ? "Save Changes" : "Add Project")}
             </Button>

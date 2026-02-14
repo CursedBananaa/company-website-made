@@ -1,6 +1,7 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { User, CompanyProfile, UserUpdate, CompanyProfileUpdate } from "@/types";
 
 interface ProfileData {
   userId?: number;
@@ -23,6 +24,7 @@ interface ProfileContextType {
   profile: ProfileData;
   updateProfile: (data: Partial<ProfileData>) => void;
   loading: boolean;
+  signOut: () => Promise<void>;
 }
 
 const defaultProfile: ProfileData = {
@@ -68,7 +70,7 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
           }
 
           if (userData) {
-            const safeUserData = userData as any;
+            const safeUserData = userData as User & { company_profile: CompanyProfile[] | CompanyProfile | null };
             // Split full_name into first and last name
             const names = (safeUserData.full_name || "").split(' ');
             const firstName = names[0] || "";
@@ -77,6 +79,7 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
             const companyProfiles = safeUserData.company_profile || [];
             const companyData = Array.isArray(companyProfiles) ? companyProfiles[0] : companyProfiles;
             
+
             setProfile({
               userId: safeUserData.id,
               companyId: companyData?.id,
@@ -112,7 +115,7 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
       if (!authUser) return;
 
       // Prepare user table updates
-      const userUpdates: any = {};
+      const userUpdates: UserUpdate = {};
       
       if (data.firstName || data.lastName) {
         const fName = data.firstName !== undefined ? data.firstName : profile.firstName;
@@ -128,7 +131,6 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
       if (Object.keys(userUpdates).length > 0) {
         const { error } = await supabase
           .from('user')
-          // @ts-ignore
           .update(userUpdates)
           .eq('auth_id', authUser.id);
         
@@ -136,7 +138,7 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
       }
 
       // Prepare company_profile updates
-      const companyUpdates: any = {};
+      const companyUpdates: CompanyProfileUpdate = {};
       if (data.website !== undefined) companyUpdates.website = data.website;
       if (data.industry !== undefined) companyUpdates.industry = data.industry;
       if (data.description !== undefined) companyUpdates.description = data.description;
@@ -184,8 +186,19 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  const signOut = async () => {
+    try {
+      await supabase.auth.signOut();
+      setProfile(defaultProfile);
+      toast.success("Signed out successfully");
+    } catch (error) {
+      console.error("Error signing out:", error);
+      toast.error("Error signing out");
+    }
+  };
+
   return (
-    <ProfileContext.Provider value={{ profile, updateProfile, loading }}>
+    <ProfileContext.Provider value={{ profile, updateProfile, loading, signOut }}>
       {children}
     </ProfileContext.Provider>
   );

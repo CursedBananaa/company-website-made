@@ -18,6 +18,8 @@ import Auth from "./pages/Auth";
 import Payment from "./pages/Payment";
 import NotFound from "./pages/NotFound";
 
+import LandingPage from "./pages/LandingPage";
+
 const queryClient = new QueryClient();
 
 const App = () => (
@@ -29,7 +31,7 @@ const App = () => (
           <Sonner />
           <BrowserRouter>
             <Routes>
-              <Route path="/" element={<Index />} />
+              <Route path="/" element={<LandingPage />} />
               <Route path="/auth" element={<Auth />} />
               
               {/* Protected Routes that require profile completion */}
