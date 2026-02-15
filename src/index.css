@@ -6,97 +6,82 @@
 
 @layer base {
   :root {
-    --background: 0 0% 98%;
-    --foreground: 240 10% 15%;
+    --background: 0 0% 100%;
+    --foreground: 222.2 84% 4.9%;
 
     --card: 0 0% 100%;
-    --card-foreground: 240 10% 15%;
+    --card-foreground: 222.2 84% 4.9%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 240 10% 15%;
+    --popover-foreground: 222.2 84% 4.9%;
 
-    --primary: 250 50% 50%;
-    --primary-foreground: 0 0% 100%;
+    --primary: 237 30% 46%;
+    --primary-foreground: 210 40% 98%;
 
-    --secondary: 250 60% 95%;
-    --secondary-foreground: 250 50% 50%;
+    --secondary: 210 40% 96.1%;
+    --secondary-foreground: 222.2 47.4% 11.2%;
 
-    --muted: 220 14% 96%;
-    --muted-foreground: 220 9% 46%;
+    --muted: 210 40% 96.1%;
+    --muted-foreground: 215.4 16.3% 46.9%;
 
-    --accent: 250 50% 50%;
-    --accent-foreground: 0 0% 100%;
+    --accent: 210 40% 96.1%;
+    --accent-foreground: 222.2 47.4% 11.2%;
 
-    --destructive: 0 84% 60%;
-    --destructive-foreground: 0 0% 100%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
 
-    --success: 142 76% 36%;
-    --success-foreground: 0 0% 100%;
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+    --ring: 237 30% 46%;
 
-    --warning: 45 93% 47%;
-    --warning-foreground: 0 0% 0%;
+    --radius: 0.5rem;
 
-    --pending: 45 93% 47%;
-    --pending-foreground: 0 0% 0%;
-
-    --border: 220 13% 91%;
-    --input: 220 13% 91%;
-    --ring: 250 50% 50%;
-
-    --radius: 0.75rem;
-
-    --sidebar-background: 0 0% 100%;
-    --sidebar-foreground: 220 9% 46%;
-    --sidebar-primary: 250 50% 50%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 250 50% 50%;
-    --sidebar-accent-foreground: 0 0% 100%;
+    --sidebar-background: 0 0% 98%;
+    --sidebar-foreground: 240 5.3% 26.1%;
+    --sidebar-primary: 240 5.9% 10%;
+    --sidebar-primary-foreground: 0 0% 98%;
+    --sidebar-accent: 240 4.8% 95.9%;
+    --sidebar-accent-foreground: 240 5.9% 10%;
     --sidebar-border: 220 13% 91%;
-    --sidebar-ring: 250 50% 50%;
-
-    --chart-purple: 250 50% 50%;
-    --chart-pink: 330 80% 65%;
-    --chart-yellow: 45 93% 47%;
-    --chart-green: 142 76% 36%;
-    --chart-blue: 210 100% 50%;
+    --sidebar-ring: 217.2 91.2% 59.8%;
   }
 
   .dark {
-    --background: 240 10% 10%;
-    --foreground: 0 0% 98%;
+    --background: 240 10% 6%;
+    --foreground: 210 40% 98%;
 
-    --card: 240 10% 12%;
-    --card-foreground: 0 0% 98%;
+    --card: 240 10% 10%;
+    --card-foreground: 210 40% 98%;
 
-    --popover: 240 10% 12%;
-    --popover-foreground: 0 0% 98%;
+    --popover: 224 71% 4%;
+    --popover-foreground: 215 20.2% 65.1%;
 
     --primary: 250 50% 60%;
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 250 30% 20%;
-    --secondary-foreground: 250 50% 75%;
+    --secondary: 240 3.7% 15.9%;
+    --secondary-foreground: 0 0% 98%;
 
-    --muted: 240 10% 18%;
-    --muted-foreground: 220 9% 60%;
+    --muted: 240 3.7% 15.9%;
+    --muted-foreground: 240 5% 64.9%;
 
-    --accent: 250 50% 60%;
-    --accent-foreground: 0 0% 100%;
+    --accent: 240 3.7% 15.9%;
+    --accent-foreground: 0 0% 98%;
 
-    --destructive: 0 62% 50%;
-    --destructive-foreground: 0 0% 100%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 0 0% 98%;
 
-    --border: 240 10% 20%;
-    --input: 240 10% 20%;
-    --ring: 250 50% 60%;
+    --border: 240 3.7% 15.9%;
+    --input: 240 3.7% 15.9%;
+    --ring: 240 4.9% 83.9%;
 
-    --sidebar-background: 240 10% 8%;
-    --sidebar-foreground: 220 9% 70%;
+    --sidebar-background: 240 10% 6%;
+    --sidebar-foreground: 240 4.8% 95.9%;
     --sidebar-primary: 250 50% 60%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 250 50% 60%;
-    --sidebar-accent-foreground: 0 0% 100%;
-    --sidebar-border: 240 10% 20%;
+    --sidebar-accent: 240 3.7% 15.9%;
+    --sidebar-accent-foreground: 240 4.8% 95.9%;
+    --sidebar-border: 240 3.7% 15.9%;
     --sidebar-ring: 250 50% 60%;
   }
 }
@@ -116,27 +101,27 @@
   .stat-card-pink {
     @apply bg-secondary text-secondary-foreground;
   }
-  
+
   .status-active {
     @apply bg-success text-success-foreground;
   }
-  
+
   .status-pending {
     @apply bg-pending text-pending-foreground;
   }
-  
+
   .status-draft {
     @apply bg-muted text-muted-foreground;
   }
-  
+
   .status-complete {
     @apply bg-chart-pink text-white;
   }
-  
+
   .status-accepted {
     @apply bg-success/20 text-success;
   }
-  
+
   .status-rejected {
     @apply bg-destructive/20 text-destructive;
   }

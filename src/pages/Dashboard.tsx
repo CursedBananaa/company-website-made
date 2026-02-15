@@ -32,15 +32,15 @@ const insightsData = [
   { name: "Back-End", value: 280, color: "hsl(280, 67%, 45%)" },
   { name: "AI", value: 320, color: "hsl(142, 76%, 36%)" },
   { name: "Front-End", value: 250, color: "hsl(45, 93%, 47%)" },
-  { name: "UI&UX", value: 310, color: "hsl(280, 67%, 45%)" },
-  { name: "Big Data", value: 180, color: "hsl(0, 0%, 20%)" },
-  { name: "Flutter", value: 200, color: "hsl(280, 67%, 45%)" },
-  { name: "Testing", value: 150, color: "hsl(0, 0%, 20%)" },
-  { name: "web Dev", value: 220, color: "hsl(280, 67%, 45%)" },
-  { name: "Markting", value: 280, color: "hsl(0, 0%, 20%)" },
-  { name: "Socail", value: 320, color: "hsl(280, 67%, 45%)" },
-  { name: "photo shop", value: 180, color: "hsl(0, 0%, 20%)" },
-  { name: "cyber suc", value: 250, color: "hsl(280, 67%, 45%)" },
+  { name: "UI&UX", value: 310, color: "hsl(190, 80%, 45%)" }, // Cyan
+  { name: "Big Data", value: 180, color: "hsl(330, 70%, 50%)" }, // Pink
+  { name: "Flutter", value: 200, color: "hsl(250, 60%, 55%)" }, // Purple
+  { name: "Testing", value: 150, color: "hsl(25, 90%, 55%)" }, // Orange
+  { name: "web Dev", value: 220, color: "hsl(210, 80%, 50%)" }, // Blue
+  { name: "Markting", value: 280, color: "hsl(160, 60%, 40%)" }, // Green
+  { name: "Socail", value: 320, color: "hsl(290, 60%, 50%)" }, // Magenta
+  { name: "photo shop", value: 180, color: "hsl(15, 80%, 55%)" }, // Red-Orange
+  { name: "cyber suc", value: 250, color: "hsl(260, 60%, 45%)" }, // Indigo
 ];
 
 export default function Dashboard() {
@@ -54,26 +54,28 @@ export default function Dashboard() {
             value="7,265"
             change="+11.01%"
             changeType="positive"
+            className="bg-gradient-to-br from-violet-500 to-purple-600 text-white border-none shadow-lg [&_p.text-muted-foreground]:text-white/80 [&_p.font-semibold]:text-white"
           />
           <StatCard
             title="No Of Completed Projects"
             value="3,671"
             change="+6.08%"
             changeType="positive"
-            variant="pink"
+            className="bg-gradient-to-br from-pink-500 to-rose-600 text-white border-none shadow-lg [&_p.text-muted-foreground]:text-white/80 [&_p.font-semibold]:text-white"
           />
           <StatCard
             title="Opportunities"
             value="7,265"
             change="+11.01%"
             changeType="positive"
+            className="bg-gradient-to-br from-blue-500 to-cyan-600 text-white border-none shadow-lg [&_p.text-muted-foreground]:text-white/80 [&_p.font-semibold]:text-white"
           />
           <StatCard
             title="Total Projects"
             value="3,671"
             change="-0.03%"
             changeType="negative"
-            variant="pink"
+            className="bg-gradient-to-br from-amber-500 to-orange-600 text-white border-none shadow-lg [&_p.text-muted-foreground]:text-white/80 [&_p.font-semibold]:text-white"
           />
         </div>
 
@@ -168,8 +170,11 @@ export default function Dashboard() {
                   <Bar
                     dataKey="value"
                     radius={[4, 4, 0, 0]}
-                    fill="hsl(var(--chart-purple))"
-                  />
+                  >
+                    {insightsData.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={entry.color} />
+                    ))}
+                  </Bar>
                 </BarChart>
               </ResponsiveContainer>
             </div>

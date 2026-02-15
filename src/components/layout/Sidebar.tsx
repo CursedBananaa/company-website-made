@@ -20,7 +20,7 @@ export function Sidebar() {
 
   const handleLogout = async () => {
     await signOut();
-    navigate("/auth");
+    navigate("/");
   };
 
   return (

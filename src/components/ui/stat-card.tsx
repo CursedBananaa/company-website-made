@@ -9,6 +9,7 @@ interface StatCardProps {
   variant?: "default" | "pink";
   showArrow?: boolean;
   onClick?: () => void;
+  className?: string;
 }
 
 export function StatCard({
@@ -19,13 +20,15 @@ export function StatCard({
   variant = "default",
   showArrow = false,
   onClick,
+  className,
 }: StatCardProps) {
   return (
     <div
       className={cn(
         "rounded-lg p-4 transition-all",
         variant === "pink" ? "bg-secondary" : "bg-card border border-border",
-        onClick && "cursor-pointer hover:shadow-md"
+        onClick && "cursor-pointer hover:shadow-md",
+        className
       )}
       onClick={onClick}
     >
