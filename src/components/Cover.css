@@ -9,7 +9,8 @@
   left: 0;
   width: 100vw;
   height: 100vh;
-  background-color: #53599A; /* blueviolet in original but matching theme */
+  background-color: #53599A;
+  /* blueviolet in original but matching theme */
   color: white;
   display: flex;
   justify-content: center;

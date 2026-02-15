@@ -3,7 +3,7 @@ import { NavLink } from "react-router-dom";
 import { cn } from "@/lib/utils";
 
 const navItems = [
-  { icon: Home, label: "HOME", path: "/" },
+  { icon: Home, label: "HOME", path: "/home" },
   { icon: LayoutDashboard, label: "Dashboard", path: "/dashboard" },
   { icon: FolderKanban, label: "Projects", path: "/projects" },
   { icon: Users, label: "Student Data", path: "/students" },
@@ -25,6 +25,19 @@ export function Sidebar() {
 
   return (
     <aside className="fixed left-0 top-0 z-40 h-screen w-[180px] bg-sidebar border-r border-sidebar-border flex flex-col">
+      {/* Logo Section */}
+      <div className="px-3 py-6 border-b border-sidebar-border">
+        <button
+          onClick={() => navigate("/")}
+          className="w-full text-center font-['Pecita'] text-4xl font-bold text-primary hover:opacity-90 transition-all cursor-pointer"
+          style={{
+            textShadow: '0 0 20px hsl(var(--primary) / 0.6), 0 0 40px hsl(var(--primary) / 0.4), 0 0 60px hsl(var(--primary) / 0.2)'
+          }}
+        >
+          Sha8lny
+        </button>
+      </div>
+
       <nav className="flex-1 px-3 py-6 space-y-1">
         {navItems.map((item) => (
           <NavLink

@@ -8,6 +8,7 @@ import { ProfileProvider } from "@/contexts/ProfileContext";
 import { RequireProfileCompletion } from "@/components/RequireProfileCompletion";
 import Index from "./pages/Index";
 import Dashboard from "./pages/Dashboard";
+import Home from "./pages/Home";
 import Projects from "./pages/Projects";
 import Applicants from "./pages/Applicants";
 import Students from "./pages/Students";
@@ -33,8 +34,13 @@ const App = () => (
             <Routes>
               <Route path="/" element={<LandingPage />} />
               <Route path="/auth" element={<Auth />} />
-              
+
               {/* Protected Routes that require profile completion */}
+              <Route path="/home" element={
+                <RequireProfileCompletion>
+                  <Home />
+                </RequireProfileCompletion>
+              } />
               <Route path="/dashboard" element={
                 <RequireProfileCompletion>
                   <Dashboard />
