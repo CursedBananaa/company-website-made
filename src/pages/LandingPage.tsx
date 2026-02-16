@@ -4,7 +4,7 @@ import { useProfile } from '@/contexts/ProfileContext';
 import Cover from '../components/Cover';
 import './LandingPage.css';
 import { ThemeToggle } from '@/components/ThemeToggle';
-import { ParticlesBackground } from '@/components/ui/particles-background';
+import Antigravity from '@/components/ui/Antigravity';
 
 export default function LandingPage() {
   const navigate = useNavigate();
@@ -38,7 +38,35 @@ export default function LandingPage() {
         </nav>
 
         <section className="hero">
-          <ParticlesBackground />
+          <div style={{ width: '100%', height: '100%', position: 'absolute', top: 0, left: 0, zIndex: 0 }}>
+            <Antigravity
+              count={300}
+              magnetRadius={3}
+              ringRadius={3.5}
+              waveSpeed={0.4}
+              waveAmplitude={1}
+              particleSize={3.5}
+              lerpSpeed={0.05}
+              colors={[
+                '#7C3AED', // Violet (500)
+                '#9333EA', // Purple (600)
+                '#EC4899', // Pink (500)
+                '#E11D48', // Rose (600)
+                '#3B82F6', // Blue (500)
+                '#0891B2', // Cyan (600)
+                '#F59E0B', // Amber (500)
+                '#EA580C', // Orange (600)
+                '#53599A', // Brand Primary
+              ]}
+              autoAnimate
+              particleVariance={2}
+              rotationSpeed={5}
+              depthFactor={1.5}
+              pulseSpeed={0}
+              particleShape="capsule"
+              fieldStrength={40}
+            />
+          </div>
           <div className="hero-content relative z-10">
             <h1>Start your <span className="highlight-text">Training</span><br />Journey With Us !</h1>
             <p>Platform afford a training Opportunities in Different Fields, Gain a Work experience and certification to add it to Your CV.</p>
