@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { Eye, EyeOff, Mail, Lock, User as UserIcon } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
+import { authApi } from "@/lib/api";
 import { User } from "@/types";
 
 export default function Auth() {
@@ -30,6 +30,22 @@ export default function Auth() {
     confirmPassword: "",
   });
 
+  const handleForgotPassword = async () => {
+    if (!formData.email) {
+      toast.error("Please enter your email to reset password.");
+      return;
+    }
+    setIsLoading(true);
+    try {
+      await authApi.forgotPassword({ email: formData.email });
+      toast.success("Password reset email sent!");
+    } catch (error) {
+      toast.error((error as any)?.response?.data?.message || "An error occurred.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
@@ -41,105 +57,36 @@ export default function Auth() {
       }
 
       if (isLogin) {
-        const { data: authData, error } = await supabase.auth.signInWithPassword({
+        const response = await authApi.login({
           email: formData.email,
           password: formData.password,
         });
-        if (error) throw error;
 
-        // Check if user has company role
-        if (authData.user) {
-           const { data: userProfile } = await supabase
-             .from('user')
-             .select('role')
-             .eq('auth_id', authData.user.id)
-             .single();
-           
-           
-           if (userProfile && (userProfile as User).role !== 'company') {
-              await supabase.auth.signOut();
-              toast.error("Access restricted to company accounts only.");
-              return;
-           }
+        if (response.token) {
+          localStorage.setItem('token', response.token);
         }
 
         toast.success("Welcome back!");
         navigate("/dashboard");
+        window.location.reload(); 
       } else {
-        const { data: authData, error: authError } = await supabase.auth.signUp({
+        const response = await authApi.register({
           email: formData.email,
           password: formData.password,
+          role: "company"
         });
-        if (authError) throw authError;
 
-        if (authData.user) {
-          // Check if user already exists
-          const { data: existingUser } = await supabase
-            .from('user')
-            .select('*')
-            .eq('email', formData.email)
-            .single();
-
-          let userData = existingUser;
-          let profileError = null;
-
-          if (!existingUser) {
-            const { data: newUser, error } = await supabase
-              .from('user')
-              .insert({
-                email: formData.email,
-                full_name: formData.name,
-                password: formData.password,
-                auth_id: authData.user.id,
-                role: 'company'
-              })
-              .select()
-              .single();
-            
-            userData = newUser;
-            profileError = error;
-          } else {
-             // If user exists but auth_id is different (e.g. legacy/manual), update it? 
-             // Or just proceed. safely. 
-             // For now, if found by email, we assume it's the correct record usage.
-             // We might want to ensure auth_id matches if strictly coupling.
-             if (existingUser.auth_id !== authData.user.id) {
-               // Update auth_id to match current session
-                await supabase.from('user').update({ auth_id: authData.user.id }).eq('id', existingUser.id);
-             }
-          }
-          
-          if (profileError) {
-             throw profileError;
-          }
-
-          if (userData) {
-             // Check if company profile exists
-             const { data: existingCompany } = await supabase
-               .from('company_profile')
-               .select('id')
-               .eq('user_id', userData.id)
-               .single();
-
-             if (!existingCompany) {
-               // Create an empty company profile for the new user
-               const { error: companyError } = await supabase
-                 .from('company_profile')
-                 .insert({
-                   user_id: userData.id
-                 });
-               
-               if (companyError) {
-                 console.error("Error creating company profile:", companyError);
-               }
-             }
-          }
+        if (response.token) {
+          localStorage.setItem('token', response.token);
         }
+
         toast.success("Account created successfully! Please complete your company profile.");
         navigate("/profile");
+        window.location.reload(); 
       }
-    } catch (error) {
-      toast.error((error as Error).message || "An error occurred. Please try again.");
+    } catch (error: any) {
+      const message = error.response?.data?.message || error.response?.data?.title || error.message || "An error occurred. Please try again.";
+      toast.error(message);
     } finally {
       setIsLoading(false);
     }
@@ -282,6 +229,7 @@ export default function Auth() {
               <div className="flex justify-end">
                 <button
                   type="button"
+                  onClick={handleForgotPassword}
                   className="text-sm text-primary hover:underline"
                 >
                   Forgot password?

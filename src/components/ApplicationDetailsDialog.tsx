@@ -4,7 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { FileText, User, Check, X, Download } from "lucide-react";
 import { toast } from "sonner";
-import { supabase } from "@/integrations/supabase/client";
+import api from "@/lib/api";
 import { useState } from "react";
 
 interface ApplicationDetailsDialogProps {
@@ -33,13 +33,8 @@ export function ApplicationDetailsDialog({
   const handleStatusUpdate = async (newStatus: 'accepted' | 'rejected') => {
     try {
       setIsUpdating(true);
-      const { error } = await supabase
-        .from('application')
-        // @ts-ignore
-        .update({ status: newStatus })
-        .eq('id', application.id);
-
-      if (error) throw error;
+      // TODO: Replace with actual .NET endpoint when ready
+      await api.patch(`/applications/${application.id}/status`, { status: newStatus });
 
       toast.success(`Application ${newStatus} successfully`);
       onStatusUpdate();

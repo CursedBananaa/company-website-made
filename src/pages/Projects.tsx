@@ -1,6 +1,6 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import api from "@/lib/api";
 
 import { Plus, Edit, Trash2 } from "lucide-react";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
@@ -24,20 +24,14 @@ export default function Projects() {
     queryFn: async () => {
       if (!profile.companyId) return [];
 
-      const { data, error } = await supabase
-        .from('opportunity')
-        .select(`
-          *,
-          company_profile (
-            user (
-              full_name
-            )
-          )
-        `)
-        .eq('company_id', profile.companyId);
-      
-      if (error) throw error;
-      return data;
+      // TODO: Replace with actual .NET endpoint when ready
+      try {
+        const response = await api.get(`/opportunities?company_id=${profile.companyId}`);
+        return response.data || [];
+      } catch (error) {
+        console.error("Mocked API call failed (endpoint may not exist yet):", error);
+        return [];
+      }
     },
     enabled: !!profile.companyId,
   });
@@ -46,12 +40,8 @@ export default function Projects() {
     if (!confirm("Are you sure you want to delete this project?")) return;
 
     try {
-      const { error } = await supabase
-        .from('opportunity')
-        .delete()
-        .eq('id', id);
-
-      if (error) throw error;
+      // TODO: Replace with actual .NET endpoint when ready
+      await api.delete(`/opportunities/${id}`);
 
       toast.success("Project deleted successfully");
       queryClient.invalidateQueries({ queryKey: ['projects'] });

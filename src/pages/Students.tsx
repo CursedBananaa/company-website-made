@@ -3,7 +3,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Filter, ChevronDown, Eye } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import api from "@/lib/api";
 import { useState } from "react";
 import { StudentDetailsDialog } from "@/components/StudentDetailsDialog";
 
@@ -15,36 +15,14 @@ export default function Students() {
   const { data: students, isLoading } = useQuery({
     queryKey: ['students'],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('student_profile')
-        .select(`
-          *,
-          user (
-            id,
-            full_name,
-            email,
-            phone_number,
-            profile_picture,
-            bio
-          ),
-          student_skills (
-            skill_name
-          ),
-          application (
-            status,
-            created_at,
-            opportunity (
-              title,
-              is_paid,
-              company_profile (
-                industry
-              )
-            )
-          )
-        `);
-      
-      if (error) throw error;
-      return data;
+      // TODO: Replace with actual .NET endpoint when ready
+      try {
+        const response = await api.get('/students');
+        return response.data || [];
+      } catch (error) {
+        console.error("Mocked API call failed (endpoint may not exist yet):", error);
+        return [];
+      }
     },
   });
 

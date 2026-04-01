@@ -6,16 +6,20 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Camera, Mail, Phone, MapPin, Briefcase, Save } from "lucide-react";
+import { Camera, Mail, Phone, MapPin, Briefcase, Save, Globe } from "lucide-react";
 import { toast } from "sonner";
 import { useProfile } from "@/contexts/ProfileContext";
 
 export default function Profile() {
-  const { profile, updateProfile } = useProfile();
+  const { profile, updateProfile, saveCompanyProfile } = useProfile();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const handleSave = () => {
-    toast.success("Profile updated successfully!");
+  const handleSave = async () => {
+    toast.success("Personal details updated locally.");
+  };
+
+  const handleCompanySave = async () => {
+    await saveCompanyProfile();
   };
 
   const handleAvatarClick = () => {
@@ -31,7 +35,7 @@ export default function Profile() {
       }
       const reader = new FileReader();
       reader.onload = (event) => {
-        updateProfile({ avatarUrl: event.target?.result as string });
+        updateProfile({ avatarUrl: event.target?.result as string, logoUrl: event.target?.result as string });
         toast.success("Profile image updated!");
       };
       reader.readAsDataURL(file);
@@ -60,7 +64,7 @@ export default function Profile() {
                     className="hidden"
                   />
                   <Avatar className="h-24 w-24 cursor-pointer" onClick={handleAvatarClick}>
-                    <AvatarImage src={profile.avatarUrl} />
+                    <AvatarImage src={profile.role === 'company' ? (profile.logoUrl || profile.avatarUrl) : profile.avatarUrl} />
                     <AvatarFallback className="bg-primary text-primary-foreground text-2xl">
                       {profile.firstName[0]}{profile.lastName[0]}
                     </AvatarFallback>
@@ -75,118 +79,66 @@ export default function Profile() {
                   </Button>
                 </div>
                 <h2 className="mt-4 text-xl font-semibold text-foreground">
-                  {profile.firstName} {profile.lastName}
+                  {profile.role === 'company' 
+                    ? (profile.companyName || `${profile.firstName} ${profile.lastName}`)
+                    : `${profile.firstName} ${profile.lastName}`
+                  }
                 </h2>
-                <p className="text-sm text-muted-foreground">{profile.role}</p>
+                <p className="text-sm text-muted-foreground">
+                  {profile.role === 'company' ? (profile.industry || "Company") : profile.role}
+                </p>
 
-                <div className="mt-6 w-full space-y-3">
+                <div className="mt-6 w-full text-left space-y-3">
                   <div className="flex items-center gap-3 text-sm text-muted-foreground">
-                    <Mail className="h-4 w-4" />
-                    <span>{profile.email}</span>
+                    <Mail className="h-4 w-4 shrink-0" />
+                    <span className="truncate">{profile.role === 'company' ? (profile.contactEmail || profile.email) : profile.email}</span>
                   </div>
                   <div className="flex items-center gap-3 text-sm text-muted-foreground">
-                    <Phone className="h-4 w-4" />
-                    <span>{profile.phone}</span>
+                    <Phone className="h-4 w-4 shrink-0" />
+                    <span className="truncate">{profile.role === 'company' ? (profile.contactPhone || profile.phone) : profile.phone}</span>
                   </div>
                   <div className="flex items-center gap-3 text-sm text-muted-foreground">
-                    <MapPin className="h-4 w-4" />
-                    <span>{profile.location}</span>
+                    <MapPin className="h-4 w-4 shrink-0" />
+                    <span className="truncate">
+                      {profile.role === 'company' 
+                        ? (
+                            [profile.city, profile.state, profile.country].filter(Boolean).join(', ') || 
+                            profile.address || 
+                            profile.location || 
+                            "Location not set"
+                          ) 
+                        : (profile.location || "Location not set")
+                      }
+                    </span>
                   </div>
-                  <div className="flex items-center gap-3 text-sm text-muted-foreground">
-                    <Briefcase className="h-4 w-4" />
-                    <span>{profile.role}</span>
-                  </div>
+                  {profile.role === 'company' && profile.websiteUrl && (
+                    <div className="flex items-center gap-3 text-sm text-muted-foreground">
+                      <Globe className="h-4 w-4 shrink-0" />
+                      <a href={profile.websiteUrl.startsWith('http') ? profile.websiteUrl : `https://${profile.websiteUrl}`} target="_blank" rel="noopener noreferrer" className="truncate hover:underline text-primary">
+                        {profile.websiteUrl.replace(/^https?:\/\//, '')}
+                      </a>
+                    </div>
+                  )}
+                  {profile.role !== 'company' && (
+                    <div className="flex items-center gap-3 text-sm text-muted-foreground">
+                      <Briefcase className="h-4 w-4 shrink-0" />
+                      <span className="capitalize">{profile.role}</span>
+                    </div>
+                  )}
                 </div>
               </div>
             </CardContent>
           </Card>
 
-          {/* Edit Profile Form */}
+          {/* Edit Company Profile Form */}
+
           <Card className="lg:col-span-2 bg-card border-border">
-            <CardHeader>
-              <CardTitle>Edit Profile</CardTitle>
-              <CardDescription>Update your personal information</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="grid gap-4 sm:grid-cols-2">
-                <div className="space-y-2">
-                  <Label htmlFor="firstName">First Name</Label>
-                  <Input
-                    id="firstName"
-                    value={profile.firstName}
-                    onChange={(e) => updateProfile({ firstName: e.target.value })}
-                    className="bg-muted border-input"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="lastName">Last Name</Label>
-                  <Input
-                    id="lastName"
-                    value={profile.lastName}
-                    onChange={(e) => updateProfile({ lastName: e.target.value })}
-                    className="bg-muted border-input"
-                  />
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  value={profile.email}
-                  onChange={(e) => updateProfile({ email: e.target.value })}
-                  className="bg-muted border-input"
-                />
-              </div>
-
-              <div className="grid gap-4 sm:grid-cols-2">
-                <div className="space-y-2">
-                  <Label htmlFor="phone">Phone</Label>
-                  <Input
-                    id="phone"
-                    value={profile.phone}
-                    onChange={(e) => updateProfile({ phone: e.target.value })}
-                    className="bg-muted border-input"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="location">Location</Label>
-                  <Input
-                    id="location"
-                    value={profile.location}
-                    onChange={(e) => updateProfile({ location: e.target.value })}
-                    className="bg-muted border-input"
-                  />
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="bio">Bio</Label>
-                <Textarea
-                  id="bio"
-                  value={profile.bio}
-                  onChange={(e) => updateProfile({ bio: e.target.value })}
-                  className="bg-muted border-input min-h-[100px]"
-                />
-              </div>
-
-              <Button onClick={handleSave} className="gap-2">
-                <Save className="h-4 w-4" />
-                Save Changes
-              </Button>
-            </CardContent>
-          </Card>
-
-          {/* Company Details (Only for company role) */}
-          {profile.role === 'company' && (
-            <Card className="lg:col-span-3 bg-card border-border">
               <CardHeader>
                 <CardTitle>Company Details</CardTitle>
                 <CardDescription>Manage your company information</CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
-                {profile.role === 'company' && (!profile.website || !profile.industry || !profile.description) && (
+                {profile.role === 'company' && (!profile.websiteUrl || !profile.industry || !profile.description) && (
                   <div className="bg-destructive/15 text-destructive px-4 py-3 rounded-md flex items-center gap-3 border border-destructive/20">
                     <div className="h-4 w-4 shrink-0 rounded-full bg-destructive/20 flex items-center justify-center">!</div>
                     <div className="text-sm font-medium">Please complete your company profile details (Industry, Website, Description) to access all features.</div>
@@ -194,23 +146,83 @@ export default function Profile() {
                 )}
                 <div className="grid gap-4 sm:grid-cols-2">
                   <div className="space-y-2">
+                    <Label htmlFor="companyName">Company Name</Label>
+                    <Input
+                      id="companyName"
+                      value={profile.companyName || ""}
+                      onChange={(e) => updateProfile({ companyName: e.target.value })}
+                      className="bg-muted border-input"
+                      placeholder="Adham Net"
+                    />
+                  </div>
+                  <div className="space-y-2">
                     <Label htmlFor="industry">Industry</Label>
                     <Input
                       id="industry"
                       value={profile.industry || ""}
                       onChange={(e) => updateProfile({ industry: e.target.value })}
                       className="bg-muted border-input"
-                      placeholder="e.g. Technology, Healthcare"
+                      placeholder=".NET Services"
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="website">Website</Label>
+                    <Label htmlFor="websiteUrl">Website URL</Label>
                     <Input
-                      id="website"
-                      value={profile.website || ""}
-                      onChange={(e) => updateProfile({ website: e.target.value })}
+                      id="websiteUrl"
+                      value={profile.websiteUrl || ""}
+                      onChange={(e) => updateProfile({ websiteUrl: e.target.value })}
                       className="bg-muted border-input"
-                      placeholder="https://example.com"
+                      placeholder="https://Net.com"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="contactEmail">Contact Email</Label>
+                    <Input
+                      id="contactEmail"
+                      value={profile.contactEmail || ""}
+                      onChange={(e) => updateProfile({ contactEmail: e.target.value })}
+                      className="bg-muted border-input"
+                      placeholder="hr@Net.com"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="contactPhone">Contact Phone</Label>
+                    <Input
+                      id="contactPhone"
+                      value={profile.contactPhone || ""}
+                      onChange={(e) => updateProfile({ contactPhone: e.target.value })}
+                      className="bg-muted border-input"
+                      placeholder="011112221"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="address">Address</Label>
+                    <Input
+                      id="address"
+                      value={profile.address || ""}
+                      onChange={(e) => updateProfile({ address: e.target.value })}
+                      className="bg-muted border-input"
+                      placeholder="123 Net Park"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="city">City</Label>
+                    <Input
+                      id="city"
+                      value={profile.city || ""}
+                      onChange={(e) => updateProfile({ city: e.target.value })}
+                      className="bg-muted border-input"
+                      placeholder="Alexandria"
+                    />
+                  </div>
+                  <div className="space-y-2 col-span-2">
+                    <Label htmlFor="country">Country</Label>
+                    <Input
+                      id="country"
+                      value={profile.country || ""}
+                      onChange={(e) => updateProfile({ country: e.target.value })}
+                      className="bg-muted border-input"
+                      placeholder="Egypt"
                     />
                   </div>
                 </div>
@@ -222,17 +234,16 @@ export default function Profile() {
                     value={profile.description || ""}
                     onChange={(e) => updateProfile({ description: e.target.value })}
                     className="bg-muted border-input min-h-[100px]"
-                    placeholder="Tell us about your company..."
+                    placeholder="Leading software development firm."
                   />
                 </div>
 
-                <Button onClick={handleSave} className="gap-2">
+                <Button onClick={handleCompanySave} className="gap-2">
                   <Save className="h-4 w-4" />
                   Save Company Details
                 </Button>
               </CardContent>
             </Card>
-          )}
         </div>
       </div>
     </DashboardLayout>

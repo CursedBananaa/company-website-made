@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Gift, Eye } from "lucide-react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import api from "@/lib/api";
 import { useProfile } from "@/contexts/ProfileContext";
 import { useState } from "react";
 import { ApplicationDetailsDialog } from "@/components/ApplicationDetailsDialog";
@@ -22,59 +22,14 @@ export default function Applicants() {
   const { data: applicants, isLoading } = useQuery({
     queryKey: ['applications', profile.companyId],
     queryFn: async () => {
-      // First get opportunities for this company
-      const { data: opportunities, error: oppError } = await supabase
-        .from('opportunity')
-        .select('id')
-        .eq('company_id', profile.companyId);
-      
-      if (oppError) throw oppError;
-      
-      const opportunityIds = (opportunities as any[]).map(o => o.id);
-
-      if (opportunityIds.length === 0) return [];
-
-      const { data, error } = await supabase
-        .from('application')
-        .select(`
-          *,
-          opportunity (
-            title,
-            company_id
-          ),
-          student_profile (
-            id,
-            major,
-            university,
-            grad_year,
-            cv_url,
-            github_url,
-            user (
-              full_name,
-              email,
-              phone_number,
-              profile_picture,
-              bio
-            ),
-            student_skills (
-              skill_name
-            ),
-            application (
-              status,
-              created_at,
-              opportunity (
-                title,
-                company_profile (
-                  industry
-                )
-              )
-            )
-          )
-        `)
-        .in('opportunity_id', opportunityIds);
-      
-      if (error) throw error;
-      return data;
+      // TODO: Replace with actual .NET endpoint when ready
+      try {
+        const response = await api.get(`/applications?company_id=${profile.companyId}`);
+        return response.data || [];
+      } catch (error) {
+        console.error("Mocked API call failed (endpoint may not exist yet):", error);
+        return [];
+      }
     },
     enabled: !!profile.companyId,
   });

@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Plus, Calendar, X } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
+import api from "@/lib/api";
 import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
 import { useProfile } from "@/contexts/ProfileContext";
@@ -131,23 +131,13 @@ export function AddProjectDialog({ open, onOpenChange, projectToEdit }: AddProje
         is_paid: (parseFloat(budget) || 0) > 0,
       };
 
+      // TODO: Replace with actual .NET endpoints when ready
       if (projectToEdit) {
         // Update
-        const { error } = await supabase
-          .from('opportunity')
-          // @ts-ignore
-          .update(projectData)
-          .eq('id', projectToEdit.id);
-        
-        if (error) throw error;
+        await api.put(`/opportunities/${projectToEdit.id}`, projectData);
       } else {
         // Insert
-        const { error } = await supabase
-          .from('opportunity')
-          // @ts-ignore
-          .insert(projectData);
-          
-        if (error) throw error;
+        await api.post('/opportunities', projectData);
       }
 
       toast.success(projectToEdit ? "Project updated successfully!" : "Project added successfully!");
@@ -318,7 +308,6 @@ export function AddProjectDialog({ open, onOpenChange, projectToEdit }: AddProje
           <div className="flex justify-end pt-4">
             <Button 
               onClick={handleSubmit}
-              disabled={isLoading}
               className="bg-primary hover:bg-primary/90 px-8"
               disabled={isLoading}
             >

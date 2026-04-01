@@ -1,0 +1,32 @@
+{
+  "postResponse": {
+    "isSuccess": true,
+    "data": 7,
+    "message": "Company profile created successfully.",
+    "errors": []
+  },
+  "getResponse": {
+    "isSuccess": true,
+    "data": {
+      "id": 7,
+      "userId": 30,
+      "companyName": "TechCorp Solutions",
+      "description": "Leading software development firm.",
+      "industry": "IT Services",
+      "logoUrl": "/uploads/logos/default.png",
+      "contactEmail": "hr@techcorp.com",
+      "contactPhone": null,
+      "websiteUrl": "https://techcorp.com",
+      "address": "123 Tech Park",
+      "city": "Cairo",
+      "state": null,
+      "country": "Egypt",
+      "averageRating": 0,
+      "totalReviews": 0,
+      "createdAt": "2026-03-29T22:17:29.0422101",
+      "updatedAt": "2026-03-29T22:17:29.0422102"
+    },
+    "message": null,
+    "errors": []
+  }
+}
