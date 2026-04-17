@@ -19,6 +19,18 @@ import Auth from "./pages/Auth";
 import Payment from "./pages/Payment";
 import NotFound from "./pages/NotFound";
 
+// Admin pages
+import AdminIndex from "./pages/admin/Index";
+import AdminTablePage from "./pages/admin/TablePage";
+import AdminInboxPage from "./pages/admin/InboxPage";
+import AdminOpportunitiesPage from "./pages/admin/OpportunitiesPage";
+import AdminAddOpportunityPage from "./pages/admin/AddOpportunityPage";
+import AdminViewApplicantPage from "./pages/admin/ViewApplicantPage";
+import AdminSettingsPage from "./pages/admin/SettingsPage";
+import AdminProfilePage from "./pages/admin/ProfilePage";
+import AdminAnnouncementPage from "./pages/admin/AnnouncementPage";
+import AdminAddAnnouncementPage from "./pages/admin/AddAnnouncementPage";
+
 import LandingPage from "./pages/LandingPage";
 
 const queryClient = new QueryClient();
@@ -78,6 +90,21 @@ const App = () => (
               } />
 
               <Route path="/profile" element={<Profile />} />
+
+              {/* Admin Routes */}
+              <Route path="/admin" element={<AdminIndex />} />
+              <Route path="/admin/table" element={<AdminTablePage />} />
+              <Route path="/admin/inbox" element={<AdminInboxPage />} />
+              <Route path="/admin/opportunities" element={<AdminOpportunitiesPage />} />
+              <Route path="/admin/opportunities/add" element={<AdminAddOpportunityPage />} />
+              <Route path="/admin/opportunities/edit/:id" element={<AdminAddOpportunityPage />} />
+              <Route path="/admin/opportunities/:id/applicants" element={<AdminViewApplicantPage />} />
+              <Route path="/admin/settings" element={<AdminSettingsPage />} />
+              <Route path="/admin/profile" element={<AdminProfilePage />} />
+              <Route path="/admin/announcement" element={<AdminAnnouncementPage />} />
+              <Route path="/admin/announcement/add" element={<AdminAddAnnouncementPage />} />
+              <Route path="/admin/announcement/edit/:id" element={<AdminAddAnnouncementPage />} />
+
               <Route path="*" element={<NotFound />} />
             </Routes>
           </BrowserRouter>
