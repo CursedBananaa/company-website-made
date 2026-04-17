@@ -88,10 +88,10 @@ export function DashboardLayout({ children }: SidebarProps) {
         title="Return to Landing Page"
       >
         <div className="h-8 w-8 rounded-lg bg-primary flex items-center justify-center">
-          <span className="text-primary-foreground font-bold text-sm">D</span>
+          <span className="text-primary-foreground font-bold text-sm">S</span>
         </div>
         {!collapsed && (
-          <span className="text-lg font-semibold text-primary">Dashboard</span>
+          <span className="text-lg font-semibold text-primary">sha8lny</span>
         )}
       </a>
 

@@ -30,6 +30,7 @@ export default function Auth() {
     confirmPassword: "",
   });
 
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
@@ -41,10 +42,25 @@ export default function Auth() {
       }
 
       if (isLogin) {
+        // ── Admin bypass ──────────────────────────────────────────
+        const isAdminCredentials =
+          (formData.email === "admin" || formData.email === "admin@admin.com") &&
+          formData.password === "admin#12345";
+
+        if (isAdminCredentials) {
+          localStorage.setItem("token", "admin-session");
+          localStorage.setItem("isAdmin", "true");
+          toast.success("Welcome, Admin!");
+          window.location.href = "/admin";
+          return;
+        }
+        // ─────────────────────────────────────────────────────────
+
         const result = await authApi.login(formData.email, formData.password);
         const token = result?.token ?? result?.data?.token;
         if (!token) throw new Error(result?.message || "Login failed");
         localStorage.setItem("token", token);
+        localStorage.removeItem("isAdmin");
         toast.success("Welcome back!");
         window.location.href = "/dashboard";
       } else {
@@ -73,6 +89,7 @@ export default function Auth() {
     } finally {
       setIsLoading(false);
     }
+
   };
 
   return (
@@ -142,13 +159,13 @@ export default function Auth() {
             )}
 
             <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
+              <Label htmlFor="email">Email or Username</Label>
               <div className="relative">
                 <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
                   id="email"
-                  type="email"
-                  placeholder="you@example.com"
+                  type="text"
+                  placeholder="you@example.com or admin"
                   value={formData.email}
                   onChange={(e) =>
                     setFormData({ ...formData, email: e.target.value })
