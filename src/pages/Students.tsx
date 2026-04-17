@@ -3,7 +3,6 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Filter, ChevronDown, Eye } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
 import { useState } from "react";
 import { StudentDetailsDialog } from "@/components/StudentDetailsDialog";
 
@@ -11,40 +10,11 @@ export default function Students() {
   const [selectedStudent, setSelectedStudent] = useState<any>(null);
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
 
-  // Fetch students from Supabase
   const { data: students, isLoading } = useQuery({
     queryKey: ['students'],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('student_profile')
-        .select(`
-          *,
-          user (
-            id,
-            full_name,
-            email,
-            phone_number,
-            profile_picture,
-            bio
-          ),
-          student_skills (
-            skill_name
-          ),
-          application (
-            status,
-            created_at,
-            opportunity (
-              title,
-              is_paid,
-              company_profile (
-                industry
-              )
-            )
-          )
-        `);
-      
-      if (error) throw error;
-      return data;
+    queryFn: async (): Promise<any[]> => {
+      // TODO: replace with .NET endpoint when available
+      return [];
     },
   });
 
@@ -65,31 +35,22 @@ export default function Students() {
 
         <Card>
           <CardContent className="p-0">
-            {/* Filter Bar - kept as visual placeholder for now */}
             <div className="flex items-center gap-4 p-4 border-b border-border bg-muted/50">
               <Button variant="ghost" size="sm" className="text-muted-foreground">
                 <Filter className="h-4 w-4 mr-2" />
                 Filter By
               </Button>
               <Button variant="ghost" size="sm" className="text-muted-foreground">
-                Name
-                <ChevronDown className="h-4 w-4 ml-1" />
+                Name <ChevronDown className="h-4 w-4 ml-1" />
               </Button>
               <Button variant="ghost" size="sm" className="text-muted-foreground">
-                ID
-                <ChevronDown className="h-4 w-4 ml-1" />
+                ID <ChevronDown className="h-4 w-4 ml-1" />
               </Button>
               <Button variant="ghost" size="sm" className="text-muted-foreground">
-                Status
-                <ChevronDown className="h-4 w-4 ml-1" />
-              </Button>
-              <Button variant="ghost" size="sm" className="text-muted-foreground">
-                Department
-                <ChevronDown className="h-4 w-4 ml-1" />
+                Status <ChevronDown className="h-4 w-4 ml-1" />
               </Button>
             </div>
 
-            {/* Table */}
             <div className="overflow-x-auto">
               <table className="w-full">
                 <thead>
@@ -116,14 +77,13 @@ export default function Students() {
                       <td className="p-4 text-sm text-muted-foreground">#{student.id}</td>
                       <td className="p-4 text-sm font-medium">{student.user?.full_name || "Unknown"}</td>
                       <td className="p-4 text-sm text-muted-foreground">{student.grad_year || "N/A"}</td>
-                      {/* Using profile creation date as joined date for now */}
                       <td className="p-4 text-sm text-muted-foreground">
                         {new Date(student.created_at).toLocaleDateString()}
                       </td>
                       <td className="p-4 text-sm text-muted-foreground">{student.major || "N/A"}</td>
                       <td className="p-4">
-                        <Button 
-                          variant="ghost" 
+                        <Button
+                          variant="ghost"
                           size="sm"
                           className="hover:bg-primary/10 hover:text-primary"
                           onClick={() => handleViewDetails(student)}
@@ -140,10 +100,10 @@ export default function Students() {
           </CardContent>
         </Card>
 
-        <StudentDetailsDialog 
-          open={isDetailsOpen} 
-          onOpenChange={handleOpenChange} 
-          student={selectedStudent} 
+        <StudentDetailsDialog
+          open={isDetailsOpen}
+          onOpenChange={handleOpenChange}
+          student={selectedStudent}
         />
       </div>
     </DashboardLayout>

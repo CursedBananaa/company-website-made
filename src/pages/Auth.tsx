@@ -5,8 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { Eye, EyeOff, Mail, Lock, User as UserIcon } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
-import { User } from "@/types";
+import { authApi } from "@/lib/api";
 
 export default function Auth() {
   const navigate = useNavigate();
@@ -21,6 +20,7 @@ export default function Auth() {
       setIsLogin(true);
     }
   }, [searchParams]);
+
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
@@ -41,105 +41,35 @@ export default function Auth() {
       }
 
       if (isLogin) {
-        const { data: authData, error } = await supabase.auth.signInWithPassword({
-          email: formData.email,
-          password: formData.password,
-        });
-        if (error) throw error;
-
-        // Check if user has company role
-        if (authData.user) {
-           const { data: userProfile } = await supabase
-             .from('user')
-             .select('role')
-             .eq('auth_id', authData.user.id)
-             .single();
-           
-           
-           if (userProfile && (userProfile as User).role !== 'company') {
-              await supabase.auth.signOut();
-              toast.error("Access restricted to company accounts only.");
-              return;
-           }
-        }
-
+        const result = await authApi.login(formData.email, formData.password);
+        const token = result?.token ?? result?.data?.token;
+        if (!token) throw new Error(result?.message || "Login failed");
+        localStorage.setItem("token", token);
         toast.success("Welcome back!");
-        navigate("/dashboard");
+        window.location.href = "/dashboard";
       } else {
-        const { data: authData, error: authError } = await supabase.auth.signUp({
-          email: formData.email,
-          password: formData.password,
-        });
-        if (authError) throw authError;
-
-        if (authData.user) {
-          // Check if user already exists
-          const { data: existingUser } = await supabase
-            .from('user')
-            .select('*')
-            .eq('email', formData.email)
-            .single();
-
-          let userData = existingUser;
-          let profileError = null;
-
-          if (!existingUser) {
-            const { data: newUser, error } = await supabase
-              .from('user')
-              .insert({
-                email: formData.email,
-                full_name: formData.name,
-                password: formData.password,
-                auth_id: authData.user.id,
-                role: 'company'
-              })
-              .select()
-              .single();
-            
-            userData = newUser;
-            profileError = error;
-          } else {
-             // If user exists but auth_id is different (e.g. legacy/manual), update it? 
-             // Or just proceed. safely. 
-             // For now, if found by email, we assume it's the correct record usage.
-             // We might want to ensure auth_id matches if strictly coupling.
-             if (existingUser.auth_id !== authData.user.id) {
-               // Update auth_id to match current session
-                await supabase.from('user').update({ auth_id: authData.user.id }).eq('id', existingUser.id);
-             }
-          }
-          
-          if (profileError) {
-             throw profileError;
-          }
-
-          if (userData) {
-             // Check if company profile exists
-             const { data: existingCompany } = await supabase
-               .from('company_profile')
-               .select('id')
-               .eq('user_id', userData.id)
-               .single();
-
-             if (!existingCompany) {
-               // Create an empty company profile for the new user
-               const { error: companyError } = await supabase
-                 .from('company_profile')
-                 .insert({
-                   user_id: userData.id
-                 });
-               
-               if (companyError) {
-                 console.error("Error creating company profile:", companyError);
-               }
-             }
-          }
+        const result = await authApi.register(formData.email, formData.password, "company");
+        if (result?.token) {
+          localStorage.setItem("token", result.token);
+        } else if (result?.data?.token) {
+          localStorage.setItem("token", result.data.token);
         }
-        toast.success("Account created successfully! Please complete your company profile.");
-        navigate("/profile");
+        toast.success("Account created! Please complete your company profile.");
+        // Log in automatically after registration
+        try {
+          const loginResult = await authApi.login(formData.email, formData.password);
+          const token = loginResult?.token ?? loginResult?.data?.token;
+          if (token) localStorage.setItem("token", token);
+        } catch { /* ignore auto-login failure */ }
+        window.location.href = "/profile";
       }
-    } catch (error) {
-      toast.error((error as Error).message || "An error occurred. Please try again.");
+    } catch (error: any) {
+      const msg =
+        error?.response?.data?.message ||
+        error?.response?.data?.errors?.[0] ||
+        error?.message ||
+        "An error occurred. Please try again.";
+      toast.error(msg);
     } finally {
       setIsLoading(false);
     }

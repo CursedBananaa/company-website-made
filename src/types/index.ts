@@ -1,11 +1,59 @@
-import { Database } from "@/integrations/supabase/types";
+// Standalone types — Supabase removed
 
-export type User = Database['public']['Tables']['user']['Row'];
-export type CompanyProfile = Database['public']['Tables']['company_profile']['Row'];
-export type Opportunity = Database['public']['Tables']['opportunity']['Row'];
-export type Application = Database['public']['Tables']['application']['Row'];
-export type StudentProfile = Database['public']['Tables']['student_profile']['Row'];
+export interface User {
+  id: number;
+  email: string;
+  role: string;
+  firstName?: string;
+  lastName?: string;
+  profile_picture?: string;
+  bio?: string;
+  location?: string;
+  phone?: string;
+}
 
-export type UserInsert = Database['public']['Tables']['user']['Insert'];
-export type UserUpdate = Database['public']['Tables']['user']['Update'];
-export type CompanyProfileUpdate = Database['public']['Tables']['company_profile']['Update'];
+export interface CompanyProfile {
+  id: number;
+  userId: number;
+  companyName: string;
+  description?: string;
+  industry?: string;
+  websiteUrl?: string;
+  address?: string;
+  city?: string;
+  country?: string;
+  contactEmail?: string;
+  contactPhone?: string;
+  logoUrl?: string;
+}
+
+export interface Opportunity {
+  id: number;
+  companyId: number;
+  title: string;
+  description?: string;
+  status?: string;
+  createdAt?: string;
+}
+
+export interface Application {
+  id: number;
+  opportunityId: number;
+  studentId: number;
+  status?: string;
+  createdAt?: string;
+}
+
+export interface StudentProfile {
+  id: number;
+  userId: number;
+  firstName?: string;
+  lastName?: string;
+  email?: string;
+  skills?: string[];
+  bio?: string;
+}
+
+export type UserInsert = Partial<User>;
+export type UserUpdate = Partial<User>;
+export type CompanyProfileUpdate = Partial<CompanyProfile>;

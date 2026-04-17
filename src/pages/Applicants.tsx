@@ -2,9 +2,8 @@ import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Gift, Eye } from "lucide-react";
+import { Eye } from "lucide-react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
 import { useProfile } from "@/contexts/ProfileContext";
 import { useState } from "react";
 import { ApplicationDetailsDialog } from "@/components/ApplicationDetailsDialog";
@@ -15,68 +14,16 @@ export default function Applicants() {
   const queryClient = useQueryClient();
   const [selectedApplication, setSelectedApplication] = useState<any>(null);
   const [isAppDetailsOpen, setIsAppDetailsOpen] = useState(false);
-  
+
   const [selectedStudent, setSelectedStudent] = useState<any>(null);
   const [isStudentProfileOpen, setIsStudentProfileOpen] = useState(false);
 
   const { data: applicants, isLoading } = useQuery({
     queryKey: ['applications', profile.companyId],
-    queryFn: async () => {
-      // First get opportunities for this company
-      const { data: opportunities, error: oppError } = await supabase
-        .from('opportunity')
-        .select('id')
-        .eq('company_id', profile.companyId);
-      
-      if (oppError) throw oppError;
-      
-      const opportunityIds = (opportunities as any[]).map(o => o.id);
-
-      if (opportunityIds.length === 0) return [];
-
-      const { data, error } = await supabase
-        .from('application')
-        .select(`
-          *,
-          opportunity (
-            title,
-            company_id
-          ),
-          student_profile (
-            id,
-            major,
-            university,
-            grad_year,
-            cv_url,
-            github_url,
-            user (
-              full_name,
-              email,
-              phone_number,
-              profile_picture,
-              bio
-            ),
-            student_skills (
-              skill_name
-            ),
-            application (
-              status,
-              created_at,
-              opportunity (
-                title,
-                company_profile (
-                  industry
-                )
-              )
-            )
-          )
-        `)
-        .in('opportunity_id', opportunityIds);
-      
-      if (error) throw error;
-      return data;
+    queryFn: async (): Promise<any[]> => {
+      // TODO: replace with .NET endpoint when available
+      return [];
     },
-    enabled: !!profile.companyId,
   });
 
   const handleViewApplication = (application: any) => {
@@ -87,8 +34,6 @@ export default function Applicants() {
   const handleViewStudentProfile = (student: any) => {
     setSelectedStudent(student);
     setIsStudentProfileOpen(true);
-    // Optionally close application details if you want only one dialog
-    // setIsAppDetailsOpen(false); 
   };
 
   const handleAppDetailsOpenChange = (open: boolean) => {
@@ -121,9 +66,9 @@ export default function Applicants() {
                 </thead>
                 <tbody>
                   {isLoading ? (
-                     <tr><td colSpan={6} className="p-8 text-center text-muted-foreground">Loading applications...</td></tr>
+                    <tr><td colSpan={6} className="p-8 text-center text-muted-foreground">Loading applications...</td></tr>
                   ) : applicants?.length === 0 ? (
-                     <tr><td colSpan={6} className="p-8 text-center text-muted-foreground">No applicants found.</td></tr>
+                    <tr><td colSpan={6} className="p-8 text-center text-muted-foreground">No applicants found.</td></tr>
                   ) : applicants?.map((applicant: any) => (
                     <tr key={applicant.id} className="border-b border-border last:border-0 hover:bg-muted/10 transition-colors">
                       <td className="p-4 text-sm font-medium">
@@ -132,9 +77,7 @@ export default function Applicants() {
                       <td className="p-4 text-sm text-muted-foreground">
                         {applicant.student_profile?.major || "N/A"}
                       </td>
-                      <td className="p-4 text-sm">
-                        {applicant.opportunity?.title || "Unknown"}
-                      </td>
+                      <td className="p-4 text-sm">{applicant.opportunity?.title || "Unknown"}</td>
                       <td className="p-4 text-sm text-muted-foreground">
                         {new Date(applicant.created_at).toLocaleDateString()}
                       </td>
@@ -142,18 +85,15 @@ export default function Applicants() {
                         <StatusBadge status={applicant.status || 'pending'} />
                       </td>
                       <td className="p-4">
-                        <div className="flex items-center gap-2">
-                           <Button 
-                             variant="ghost" 
-                             size="sm"
-                             className="hover:bg-primary/10 hover:text-primary"
-                             onClick={() => handleViewApplication(applicant)}
-                           >
-                             <Eye className="h-4 w-4 mr-1" />
-                             View
-                           </Button>
-                           {/* Add Status Update / Pay Buttons directly here if requested later */}
-                        </div>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="hover:bg-primary/10 hover:text-primary"
+                          onClick={() => handleViewApplication(applicant)}
+                        >
+                          <Eye className="h-4 w-4 mr-1" />
+                          View
+                        </Button>
                       </td>
                     </tr>
                   ))}
@@ -163,18 +103,18 @@ export default function Applicants() {
           </CardContent>
         </Card>
 
-        <ApplicationDetailsDialog 
-          open={isAppDetailsOpen} 
-          onOpenChange={handleAppDetailsOpenChange} 
+        <ApplicationDetailsDialog
+          open={isAppDetailsOpen}
+          onOpenChange={handleAppDetailsOpenChange}
           application={selectedApplication}
           onStatusUpdate={handleStatusUpdate}
           onViewProfile={handleViewStudentProfile}
         />
 
-        <StudentDetailsDialog 
-          open={isStudentProfileOpen} 
-          onOpenChange={setIsStudentProfileOpen} 
-          student={selectedStudent} 
+        <StudentDetailsDialog
+          open={isStudentProfileOpen}
+          onOpenChange={setIsStudentProfileOpen}
+          student={selectedStudent}
         />
       </div>
     </DashboardLayout>

@@ -1,6 +1,5 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
 
 import { Plus, Edit, Trash2 } from "lucide-react";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
@@ -21,44 +20,15 @@ export default function Projects() {
 
   const { data: projects, isLoading } = useQuery({
     queryKey: ['projects', profile.companyId],
-    queryFn: async () => {
-      if (!profile.companyId) return [];
-
-      const { data, error } = await supabase
-        .from('opportunity')
-        .select(`
-          *,
-          company_profile (
-            user (
-              full_name
-            )
-          )
-        `)
-        .eq('company_id', profile.companyId);
-      
-      if (error) throw error;
-      return data;
+    queryFn: async (): Promise<any[]> => {
+      // TODO: replace with .NET endpoint when available
+      return [];
     },
-    enabled: !!profile.companyId,
   });
 
   const handleDelete = async (id: number) => {
     if (!confirm("Are you sure you want to delete this project?")) return;
-
-    try {
-      const { error } = await supabase
-        .from('opportunity')
-        .delete()
-        .eq('id', id);
-
-      if (error) throw error;
-
-      toast.success("Project deleted successfully");
-      queryClient.invalidateQueries({ queryKey: ['projects'] });
-    } catch (error) {
-      console.error("Error deleting project:", error);
-      toast.error("Failed to delete project");
-    }
+    toast.info("Delete endpoint not yet connected.");
   };
 
   const handleEdit = (project: any) => {
@@ -95,9 +65,9 @@ export default function Projects() {
           </div>
         </div>
 
-        <AddProjectDialog 
-          open={isAddProjectOpen} 
-          onOpenChange={handleOpenChange} 
+        <AddProjectDialog
+          open={isAddProjectOpen}
+          onOpenChange={handleOpenChange}
           projectToEdit={editingProject}
         />
 
@@ -105,7 +75,7 @@ export default function Projects() {
           {isLoading ? (
             <p>Loading projects...</p>
           ) : projects?.length === 0 ? (
-             <p className="text-muted-foreground">No projects found for your company.</p>
+            <p className="text-muted-foreground">No projects found. Add your first project!</p>
           ) : projects?.map((project: any) => (
             <Card key={project.id} className="relative">
               <CardContent className="p-4 space-y-3">
@@ -114,21 +84,11 @@ export default function Projects() {
                 </div>
 
                 <div className="flex items-center gap-2">
-                  <StatusBadge status="active" /> 
-                  <span className="text-sm text-muted-foreground">
-                    {/* Assignee logic could go here if we had it */}
-                  </span>
-                </div>
-
-                <div className="text-sm">
-                  <span className="text-muted-foreground">Created By</span>
-                  <span className="ml-4">
-                    {project.company_profile?.user?.full_name || "Unknown"}
-                  </span>
+                  <StatusBadge status="active" />
                 </div>
 
                 <p className="text-xs text-muted-foreground line-clamp-2">
-                  DETAILS: {project.description}
+                  {project.description}
                 </p>
 
                 {project.deadline && (
@@ -137,15 +97,9 @@ export default function Projects() {
                   </p>
                 )}
 
-                {project.amount_of_money && (
-                  <p className="text-xs text-muted-foreground">
-                    Price: {project.amount_of_money}$
-                  </p>
-                )}
-
                 <div className="flex gap-2">
-                  <Button 
-                    size="sm" 
+                  <Button
+                    size="sm"
                     className="bg-primary hover:bg-primary/90"
                     onClick={() => handleEdit(project)}
                   >
