@@ -1,36 +1,15 @@
+import { useState, useEffect } from "react";
 import { Bell, X } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { supabase } from "@/integrations/supabase/client";
 
 interface Notification {
   id: string;
   title: string;
   time: string;
-  avatar?: string;
-  type: "notification" | "activity" | "update";
+  body?: string;
+  isRead?: boolean;
 }
-
-const notifications: Notification[] = [
-  { id: "1", title: "New Opportunity added", time: "Just now", type: "notification" },
-  { id: "2", title: "New user registered.", time: "59 minutes ago", type: "notification" },
-  { id: "3", title: "Upcoming Training Deadlines.", time: "12 hours ago", type: "notification" },
-  { id: "4", title: "Andi Lane Send Message", time: "Today, 11:59 AM", avatar: "AL", type: "notification" },
-];
-
-const activities: Notification[] = [
-  { id: "1", title: "You Approved a Opportunity", time: "Just now", type: "activity" },
-  { id: "2", title: "Modified A data in Page X.", time: "59 minutes ago", type: "activity" },
-  { id: "3", title: "Update on a Opportunity.", time: "12 hours ago", type: "activity" },
-  { id: "4", title: "Modified A data in Page X.", time: "Today, 11:59 AM", type: "activity" },
-  { id: "5", title: "Deleted a page in Project X.", time: "Feb 2, 2025", type: "activity" },
-];
-
-const updates: Notification[] = [
-  { id: "1", title: "Total Student have raised 2%", time: "", type: "update" },
-  { id: "2", title: "Drew Cano", time: "", avatar: "DC", type: "update" },
-  { id: "3", title: "Andi Lane", time: "", avatar: "AL", type: "update" },
-  { id: "4", title: "Koray Okumus", time: "", avatar: "KO", type: "update" },
-  { id: "5", title: "Kate Morrison", time: "", avatar: "KM", type: "update" },
-];
 
 interface NotificationsPanelProps {
   isOpen: boolean;
@@ -38,6 +17,53 @@ interface NotificationsPanelProps {
 }
 
 export function AdminNotificationsPanel({ isOpen, onClose }: NotificationsPanelProps) {
+  const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [currentUserId, setCurrentUserId] = useState<number | null>(null);
+
+  useEffect(() => {
+    const fetchUserAndNotifications = async () => {
+      const { data: { user: authUser } } = await supabase.auth.getUser();
+      if (!authUser) return;
+
+      const { data: userData } = await supabase
+        .from('user')
+        .select('id')
+        .eq('auth_id', authUser.id)
+        .single();
+
+      if (userData) {
+        setCurrentUserId(userData.id);
+        
+        const { data: notifs } = await supabase
+          .from("notifications")
+          .select("*")
+          .eq("u_id", userData.id)
+          .order("created_at", { ascending: false });
+
+        if (notifs) {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          const formatted = notifs.map((n: any) => ({
+            id: n.id.toString(),
+            title: n.title || "New Notification",
+            body: n.body,
+            time: new Date(n.created_at).toLocaleString(),
+            isRead: n.is_read || false,
+          }));
+          setNotifications(formatted);
+        }
+      }
+    };
+
+    if (isOpen) {
+      fetchUserAndNotifications();
+    }
+  }, [isOpen]);
+
+  const markAsRead = async (id: string) => {
+    await supabase.from("notifications").update({ is_read: true }).eq("id", parseInt(id));
+    setNotifications(prev => prev.map(n => n.id === id ? { ...n, isRead: true } : n));
+  };
+
   return (
     <>
       {isOpen && (
@@ -65,65 +91,36 @@ export function AdminNotificationsPanel({ isOpen, onClose }: NotificationsPanelP
 
         <div className="p-4 space-y-6">
           <section>
-            <h3 className="text-sm font-semibold text-foreground mb-3">Notifications</h3>
+            <h3 className="text-sm font-semibold text-foreground mb-3">Recent Alerts</h3>
             <div className="space-y-3">
-              {notifications.map((item) => (
-                <div
-                  key={item.id}
-                  className="flex items-start gap-3 p-2 rounded-lg hover:bg-muted/50 transition-colors cursor-pointer"
-                >
-                  <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center shrink-0 mt-0.5">
-                    {item.avatar ? (
-                      <span className="text-xs font-medium text-primary">{item.avatar}</span>
-                    ) : (
+              {notifications.length === 0 ? (
+                <p className="text-sm text-muted-foreground text-center py-4">No notifications yet.</p>
+              ) : (
+                notifications.map((item) => (
+                  <div
+                    key={item.id}
+                    onClick={() => markAsRead(item.id)}
+                    className={cn(
+                      "flex items-start gap-3 p-3 rounded-lg hover:bg-muted/50 transition-colors cursor-pointer",
+                      !item.isRead ? "bg-primary/5" : ""
+                    )}
+                  >
+                    <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center shrink-0 mt-0.5">
                       <Bell className="h-4 w-4 text-primary" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className={cn("text-sm text-foreground truncate", !item.isRead && "font-semibold")}>
+                        {item.title}
+                      </p>
+                      {item.body && <p className="text-xs text-muted-foreground mt-0.5 line-clamp-2">{item.body}</p>}
+                      <p className="text-xs text-muted-foreground mt-1">{item.time}</p>
+                    </div>
+                    {!item.isRead && (
+                      <div className="h-2 w-2 rounded-full bg-primary mt-2 shrink-0" />
                     )}
                   </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-foreground truncate">{item.title}</p>
-                    <p className="text-xs text-muted-foreground">{item.time}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </section>
-
-          <section>
-            <h3 className="text-sm font-semibold text-foreground mb-3">Activities</h3>
-            <div className="space-y-3">
-              {activities.map((item) => (
-                <div
-                  key={item.id}
-                  className="flex items-start gap-3 p-2 rounded-lg hover:bg-muted/50 transition-colors cursor-pointer"
-                >
-                  <div className="h-2 w-2 rounded-full bg-primary mt-2 shrink-0" />
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm text-foreground">{item.title}</p>
-                    <p className="text-xs text-muted-foreground">{item.time}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </section>
-
-          <section>
-            <h3 className="text-sm font-semibold text-foreground mb-3">Update</h3>
-            <div className="space-y-3">
-              {updates.map((item) => (
-                <div
-                  key={item.id}
-                  className="flex items-center gap-3 p-2 rounded-lg hover:bg-muted/50 transition-colors cursor-pointer"
-                >
-                  <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
-                    {item.avatar ? (
-                      <span className="text-xs font-medium text-primary">{item.avatar}</span>
-                    ) : (
-                      <div className="h-2 w-2 rounded-full bg-primary" />
-                    )}
-                  </div>
-                  <p className="text-sm text-foreground">{item.title}</p>
-                </div>
-              ))}
+                ))
+              )}
             </div>
           </section>
         </div>

@@ -2,6 +2,8 @@ import { useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { AdminDashboardLayout } from "@/components/admin/DashboardLayout";
 import { Camera, Trash2 } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -29,16 +31,17 @@ const AdminAddOpportunityPage = () => {
   const navigate = useNavigate();
   const { id } = useParams();
   const isEditing = Boolean(id);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const [activeTab, setActiveTab] = useState<"template" | "instance">("template");
   const [formData, setFormData] = useState<FormData>({
-    name: isEditing ? "Name Of Opportunity" : "",
-    description: isEditing ? "Description" : "",
-    appliedLink: isEditing ? "Applied Link" : "",
-    focusDepartment: isEditing ? "Computer" : "",
-    companyName: isEditing ? "WE" : "",
-    requiredSkills: isEditing ? "Css,html" : "",
-    applicationDeadline: isEditing ? "3/12/2027" : "",
+    name: "",
+    description: "",
+    appliedLink: "",
+    focusDepartment: "",
+    companyName: "",
+    requiredSkills: "",
+    applicationDeadline: "",
     skillsStudentLearn: "",
   });
 
@@ -46,12 +49,61 @@ const AdminAddOpportunityPage = () => {
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    navigate("/admin/opportunities");
+    if (!formData.name) {
+      toast.error("Name of Opportunity is required");
+      return;
+    }
+
+    try {
+      setIsSubmitting(true);
+      
+      let companyId = null;
+      if (formData.companyName) {
+        const { data: companyData } = await supabase
+          .from("company_profile")
+          .select("id")
+          .ilike("company_name", `%${formData.companyName}%`)
+          .limit(1)
+          .single();
+          
+        if (companyData) companyId = companyData.id;
+      }
+
+      const combinedDescription = `
+${formData.description}
+
+**Focus Department:** ${formData.focusDepartment}
+**Skills Students Learn:** ${formData.skillsStudentLearn}
+**Application Link:** ${formData.appliedLink}
+      `.trim();
+
+      const { error } = await supabase.from("opportunity").insert({
+        title: formData.name,
+        description: combinedDescription,
+        requirements: formData.requiredSkills,
+        deadline: formData.applicationDeadline,
+        company_id: companyId,
+        type: "internship", // Defaulting as it's not in the form
+        is_paid: false, // Defaulting
+      });
+
+      if (error) throw error;
+      
+      toast.success("Opportunity added successfully!");
+      navigate("/admin/opportunities");
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } catch (error: any) {
+      toast.error(error.message || "Failed to add opportunity");
+      console.error(error);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleDelete = () => {
+    // In a real app we would delete the opportunity by ID here
     navigate("/admin/opportunities");
   };
 
@@ -59,7 +111,7 @@ const AdminAddOpportunityPage = () => {
     <AdminDashboardLayout>
       <div className="max-w-4xl mx-auto">
         <h1 className="text-2xl font-bold text-foreground mb-8">
-          Add Internship Opportunity
+          {isEditing ? "Edit" : "Add"} Internship Opportunity
         </h1>
 
         <div className="flex gap-4 mb-8">
@@ -122,9 +174,10 @@ const AdminAddOpportunityPage = () => {
           <div className="flex flex-col items-center gap-4 pt-6">
             <button
               type="submit"
-              className="w-full max-w-md py-3 rounded-lg bg-primary text-primary-foreground font-medium hover:bg-primary/90 transition-colors"
+              disabled={isSubmitting}
+              className="w-full max-w-md py-3 rounded-lg bg-primary text-primary-foreground font-medium hover:bg-primary/90 transition-colors disabled:opacity-50"
             >
-              {isEditing ? "Update" : "Add Now"}
+              {isSubmitting ? "Processing..." : isEditing ? "Update" : "Add Now"}
             </button>
 
             {isEditing && (

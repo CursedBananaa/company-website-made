@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -10,9 +10,12 @@ import { Search, Phone, Video, Image, Paperclip, Mic, Send, Plus, CheckCheck, X,
 import { cn } from "@/lib/utils";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { toast } from "sonner";
+import { useProfile } from "@/contexts/ProfileContext";
+import { supabase } from "@/integrations/supabase/client";
 
 interface Contact {
-  id: string;
+  id: string; // The other user's id
+  chatId?: number; // The chat id
   name: string;
   avatar: string;
   avatarUrl?: string;
@@ -26,10 +29,10 @@ interface Contact {
 }
 
 interface Message {
-  id: string;
+  id: string | number;
   content: string;
   sender: "me" | "other";
-  senderId?: string;
+  senderId?: number;
   senderName?: string;
   senderAvatar?: string;
   time: string;
@@ -56,193 +59,269 @@ interface GroupMember {
   isOnline?: boolean;
 }
 
-const contacts: Contact[] = [
-  { id: "1", name: "Maggie Sullivan", avatar: "MS", avatarUrl: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150&h=150&fit=crop&crop=face", lastMessage: "Lorem ipsum ultrices elementum...", time: "10Am", unread: 1, isOnline: true, role: "UI/UX Designer", email: "maggie@example.com", phone: "+1 234 567 890" },
-  { id: "2", name: "Alan Cain", avatar: "AC", avatarUrl: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop&crop=face", lastMessage: "sed et nulla in consequat sagittis amet arcu...", time: "9Pm", role: "Developer", email: "alan@example.com", phone: "+1 234 567 891" },
-  { id: "3", name: "Gilbert Johnston", avatar: "GJ", avatarUrl: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&h=150&fit=crop&crop=face", lastMessage: "aliquam ullamcorper a at eu ut libero amet arcu ipsum...", time: "9Pm", isOnline: true, role: "Project Manager", email: "gilbert@example.com", phone: "+1 234 567 892" },
-  { id: "4", name: "Christine Brooks", avatar: "CB", avatarUrl: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150&h=150&fit=crop&crop=face", lastMessage: "sed et nulla in consequat sagittis amet arcu...", time: "9Pm", role: "Backend Developer", email: "christine@example.com", phone: "+1 234 567 893" },
-  { id: "5", name: "Rosie Pearson", avatar: "RP", avatarUrl: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=150&h=150&fit=crop&crop=face", lastMessage: "aliquam ullamcorper a at eu ut libero amet arcu ipsum...", time: "9Am", isOnline: true, role: "Designer", email: "rosie@example.com", phone: "+1 234 567 894" },
-  { id: "6", name: "Rosie Todd", avatar: "RT", lastMessage: "Lorem ipsum ultrices elementum...", time: "9pm", role: "QA Engineer", email: "rosiet@example.com", phone: "+1 234 567 895" },
-  { id: "7", name: "Alfred Murray", avatar: "AM", lastMessage: "aliquam ullamcorper a at eu ut libero amet arcu ipsum...", time: "8Pm", role: "DevOps", email: "alfred@example.com", phone: "+1 234 567 896" },
-];
-
-const initialGroupMembers: GroupMember[] = [
-  { id: "m1", name: "John Doe", avatar: "JD", avatarUrl: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face", role: "Team Lead", isOnline: true },
-  { id: "m2", name: "Sarah Wilson", avatar: "SW", avatarUrl: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150&h=150&fit=crop&crop=face", role: "Designer", isOnline: true },
-  { id: "m3", name: "Mike Chen", avatar: "MC", avatarUrl: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop&crop=face", role: "Developer", isOnline: false },
-  { id: "m4", name: "Emily Brown", avatar: "EB", avatarUrl: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150&h=150&fit=crop&crop=face", role: "Developer", isOnline: true },
-  { id: "m5", name: "David Lee", avatar: "DL", avatarUrl: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&h=150&fit=crop&crop=face", role: "QA Engineer", isOnline: false },
-  { id: "m6", name: "Lisa Park", avatar: "LP", avatarUrl: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=150&h=150&fit=crop&crop=face", role: "Designer", isOnline: true },
-];
-
-const initialGroups: Group[] = [
-  { id: "g1", name: "App Development", avatar: "AD", members: initialGroupMembers.slice(0, 4), description: "Main development team for the mobile app project" },
-  { id: "g2", name: "Backend", avatar: "BE", members: initialGroupMembers.slice(1, 3), description: "Backend API development team" },
-  { id: "g3", name: "UI&UX Design", avatar: "UX", members: initialGroupMembers.slice(0, 2), description: "Design team for all UI/UX work" },
-];
-
-const chatMessages: Message[] = [
-  {
-    id: "m1",
-    content: "vulputate ultrices cras nisl pellentesque tempus aliquam et eget sollicitudin erat in mauris eros amet volutpat enim placerat",
-    sender: "other",
-    time: "Yesterday 10:18 AM",
-  },
-  {
-    id: "m2",
-    content: "turpis donec ut sed elementum pellentesque at viverra arcu vitae urna varius fringilla",
-    sender: "me",
-    time: "Yesterday 10:18 AM",
-  },
-  {
-    id: "m3",
-    content: "Here's the document you requested",
-    sender: "other",
-    time: "Yesterday 10:19 AM",
-    documents: [
-      { name: "Project_Requirements.pdf", size: "2.4 MB", type: "pdf" },
-      { name: "Design_Specs.docx", size: "1.1 MB", type: "doc" },
-    ],
-  },
-  {
-    id: "m4",
-    content: "I Shared The first two page in if you first page",
-    sender: "other",
-    time: "Yesterday 10:19 AM",
-    images: [
-      "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=100&h=100&fit=crop",
-      "https://images.unsplash.com/photo-1558591710-4b4a1ae0f04d?w=100&h=100&fit=crop",
-      "https://images.unsplash.com/photo-1579546929518-9e396f3cc809?w=100&h=100&fit=crop",
-    ],
-    link: { text: "Sha8lny Graduation Project🎓 – Figma", url: "#" },
-  },
-  {
-    id: "m5",
-    content: "",
-    sender: "other",
-    time: "Yesterday 10:25 AM",
-    voiceNote: { duration: "0:32", url: "#" },
-  },
-  {
-    id: "m6",
-    content: "Thanks! I'll review these and get back to you.",
-    sender: "me",
-    time: "Yesterday 10:30 AM",
-  },
-];
-
-const groupMessages: Message[] = [
-  {
-    id: "gm1",
-    content: "Hey team, let's discuss the new feature requirements",
-    sender: "other",
-    senderId: "m1",
-    senderName: "John Doe",
-    senderAvatar: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face",
-    time: "Today 9:00 AM",
-  },
-  {
-    id: "gm2",
-    content: "Sure! I've prepared some mockups for the dashboard",
-    sender: "other",
-    senderId: "m2",
-    senderName: "Sarah Wilson",
-    senderAvatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150&h=150&fit=crop&crop=face",
-    time: "Today 9:05 AM",
-    images: [
-      "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=200&h=200&fit=crop",
-    ],
-  },
-  {
-    id: "gm3",
-    content: "I'll start working on the API endpoints today",
-    sender: "other",
-    senderId: "m3",
-    senderName: "Mike Chen",
-    senderAvatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop&crop=face",
-    time: "Today 9:10 AM",
-  },
-  {
-    id: "gm4",
-    content: "Great progress everyone! Let me know if you need any help.",
-    sender: "me",
-    time: "Today 9:15 AM",
-  },
-  {
-    id: "gm5",
-    content: "Here's the technical spec document",
-    sender: "other",
-    senderId: "m4",
-    senderName: "Emily Brown",
-    senderAvatar: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150&h=150&fit=crop&crop=face",
-    time: "Today 9:20 AM",
-    documents: [
-      { name: "Technical_Spec_v2.pdf", size: "3.2 MB", type: "pdf" },
-    ],
-  },
-];
-
 const sharedMedia = [
   "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=200&h=200&fit=crop",
   "https://images.unsplash.com/photo-1558591710-4b4a1ae0f04d?w=200&h=200&fit=crop",
   "https://images.unsplash.com/photo-1579546929518-9e396f3cc809?w=200&h=200&fit=crop",
-  "https://images.unsplash.com/photo-1614850523459-c2f4c699c52e?w=200&h=200&fit=crop",
-  "https://images.unsplash.com/photo-1557672172-298e090bd0f1?w=200&h=200&fit=crop",
-  "https://images.unsplash.com/photo-1560015534-cee980ba7e13?w=200&h=200&fit=crop",
 ];
 
 const sharedDocuments = [
   { name: "Project_Requirements.pdf", size: "2.4 MB", type: "pdf", date: "Dec 10" },
-  { name: "Design_Specs.docx", size: "1.1 MB", type: "doc", date: "Dec 9" },
-  { name: "Meeting_Notes.pdf", size: "0.8 MB", type: "pdf", date: "Dec 8" },
-  { name: "Budget_2024.xlsx", size: "1.5 MB", type: "xls", date: "Dec 7" },
 ];
 
 export default function Messages() {
-  const [selectedContact, setSelectedContact] = useState<Contact | null>(contacts[0]);
+  const { profile } = useProfile();
+  const [contacts, setContacts] = useState<Contact[]>([]);
+  const [chatMessages, setChatMessages] = useState<Message[]>([]);
+  const [groups, setGroups] = useState<Group[]>([]);
+  
+  const [selectedContact, setSelectedContact] = useState<Contact | null>(null);
   const [selectedGroup, setSelectedGroup] = useState<Group | null>(null);
-  const [groups, setGroups] = useState<Group[]>(initialGroups);
   const [messageInput, setMessageInput] = useState("");
   const [isInfoPanelOpen, setIsInfoPanelOpen] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
   const [recordingTime, setRecordingTime] = useState(0);
   const [playingVoice, setPlayingVoice] = useState<string | null>(null);
   const [isAddMemberOpen, setIsAddMemberOpen] = useState(false);
+  
   const fileInputRef = useRef<HTMLInputElement>(null);
   const imageInputRef = useRef<HTMLInputElement>(null);
   const recordingIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+  
+  const [onlineUsers, setOnlineUsers] = useState<Set<string>>(new Set());
 
-  const availableMembers = initialGroupMembers.filter(
-    member => !selectedGroup?.members.some(m => m.id === member.id)
-  );
+  useEffect(() => {
+    if (!profile.userId) return;
 
-  const handleAddMember = (member: GroupMember) => {
-    if (!selectedGroup) return;
+    const presenceChannel = supabase.channel('online-users', {
+      config: {
+        presence: {
+          key: profile.userId.toString(),
+        },
+      },
+    });
+
+    presenceChannel
+      .on('presence', { event: 'sync' }, () => {
+        const state = presenceChannel.presenceState();
+        setOnlineUsers(new Set(Object.keys(state)));
+      })
+      .subscribe(async (status) => {
+        if (status === 'SUBSCRIBED') {
+          await presenceChannel.track({ online_at: new Date().toISOString() });
+        }
+      });
+
+    return () => {
+      supabase.removeChannel(presenceChannel);
+    };
+  }, [profile.userId]);
+
+  useEffect(() => {
+    setContacts(prev => prev.map(c => ({
+      ...c,
+      isOnline: onlineUsers.has(c.id)
+    })));
+  }, [onlineUsers]);
+
+  const fetchChats = async () => {
+    if (!profile.userId) return;
     
-    const updatedGroups = groups.map(g => 
-      g.id === selectedGroup.id 
-        ? { ...g, members: [...g.members, member] }
-        : g
-    );
-    setGroups(updatedGroups);
-    setSelectedGroup(updatedGroups.find(g => g.id === selectedGroup.id) || null);
-    toast.success(`${member.name} added to ${selectedGroup.name}`);
-    setIsAddMemberOpen(false);
+    const { data: users, error: usersError } = await supabase
+      .from('user')
+      .select('*')
+      .neq('id', profile.userId);
+      
+    if (usersError) {
+      console.error("Error fetching users:", usersError);
+      return;
+    }
+
+    const { data: userChats, error: chatsError } = await supabase
+      .from('chats')
+      .select('*')
+      .contains('participants', [profile.userId.toString()]);
+      
+    if (chatsError) {
+      console.error("Error fetching chats:", chatsError);
+      return;
+    }
+
+    const formattedContacts = users.map(user => {
+      const existingChat = userChats?.find(c => c.participants.includes(user.id.toString()));
+      const names = user.full_name.split(' ');
+      const avatarStr = names.length > 1 ? `${names[0][0]}${names[1][0]}`.toUpperCase() : user.full_name.substring(0, 2).toUpperCase();
+
+      let timeStr = "";
+      if (existingChat?.last_message_time) {
+        timeStr = new Date(existingChat.last_message_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      }
+
+      return {
+        id: user.id.toString(),
+        chatId: existingChat?.id,
+        name: user.full_name,
+        avatar: avatarStr,
+        avatarUrl: user.profile_picture || undefined,
+        lastMessage: existingChat?.last_message || "Start a conversation",
+        time: timeStr,
+        unread: existingChat?.unread_count || 0,
+        isOnline: onlineUsers.has(user.id.toString()),
+        role: user.role,
+        email: user.email,
+        phone: user.phone_number || undefined,
+      };
+    });
+
+    formattedContacts.sort((a, b) => {
+      if (a.chatId && !b.chatId) return -1;
+      if (!a.chatId && b.chatId) return 1;
+      return 0;
+    });
+
+    setContacts(formattedContacts);
+    if (formattedContacts.length > 0) {
+      setSelectedContact(prev => prev ? formattedContacts.find(c => c.id === prev.id) || formattedContacts[0] : formattedContacts[0]);
+    }
   };
 
-  const handleRemoveMember = (memberId: string) => {
-    if (!selectedGroup) return;
-    
-    const memberToRemove = selectedGroup.members.find(m => m.id === memberId);
-    const updatedGroups = groups.map(g => 
-      g.id === selectedGroup.id 
-        ? { ...g, members: g.members.filter(m => m.id !== memberId) }
-        : g
-    );
-    setGroups(updatedGroups);
-    setSelectedGroup(updatedGroups.find(g => g.id === selectedGroup.id) || null);
-    if (memberToRemove) {
-      toast.success(`${memberToRemove.name} removed from ${selectedGroup.name}`);
+  useEffect(() => {
+    if (!profile.userId) return;
+
+    fetchChats();
+
+    const chatSubscription = supabase
+      .channel('public:chats')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'chats' }, () => {
+        fetchChats();
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(chatSubscription);
+    };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [profile.userId]);
+
+  useEffect(() => {
+    if (!selectedContact?.chatId) {
+      setChatMessages([]);
+      return;
+    }
+
+    const fetchMessages = async (chatId: number) => {
+      const { data: messages, error } = await supabase
+        .from('messages')
+        .select('*, user:sender_id(full_name, profile_picture)')
+        .eq('chat_id', chatId)
+        .order('created_at', { ascending: true });
+
+      if (error) {
+        console.error("Error fetching messages:", error);
+        return;
+      }
+
+      const formatted = messages.map(msg => ({
+        id: msg.id,
+        content: msg.content,
+        sender: msg.sender_id === profile.userId ? "me" as const : "other" as const,
+        senderId: msg.sender_id,
+        senderName: msg.user?.full_name,
+        senderAvatar: msg.user?.profile_picture,
+        time: new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      }));
+      
+      setChatMessages(formatted);
+      scrollToBottom();
+    };
+
+    fetchMessages(selectedContact.chatId);
+
+    const messageSubscription = supabase
+      .channel(`public:messages:chat_id=${selectedContact.chatId}`)
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages', filter: `chat_id=eq.${selectedContact.chatId}` }, (payload) => {
+        const newMsg = payload.new as { id: number; content: string; sender_id: number; created_at: string };
+        setChatMessages(prev => [...prev, {
+          id: newMsg.id,
+          content: newMsg.content,
+          sender: newMsg.sender_id === profile.userId ? "me" as const : "other" as const,
+          senderId: newMsg.sender_id,
+          time: new Date(newMsg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        }]);
+        scrollToBottom();
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(messageSubscription);
+    };
+  }, [selectedContact?.chatId, profile.userId]);
+
+  const scrollToBottom = () => {
+    setTimeout(() => {
+      messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    }, 100);
+  };
+
+  const handleSendMessage = async () => {
+    if (!messageInput.trim() || !selectedContact || !profile.userId) return;
+
+    let currentChatId = selectedContact.chatId;
+
+    if (!currentChatId) {
+      const { data: newChat, error: chatError } = await supabase
+        .from('chats')
+        .insert({
+          participants: [profile.userId.toString(), selectedContact.id],
+          last_message: messageInput,
+          last_message_time: new Date().toISOString(),
+          unread_count: 0
+        })
+        .select()
+        .single();
+        
+      if (chatError) {
+        console.error("Error creating chat:", chatError);
+        toast.error("Failed to start chat");
+        return;
+      }
+      currentChatId = newChat.id;
+      setContacts(prev => prev.map(c => c.id === selectedContact.id ? { ...c, chatId: currentChatId } : c));
+      setSelectedContact(prev => prev ? { ...prev, chatId: currentChatId } : null);
+    }
+
+    const messageText = messageInput;
+    setMessageInput(""); 
+
+    const { error: msgError } = await supabase
+      .from('messages')
+      .insert({
+        content: messageText,
+        sender_id: profile.userId,
+        chat_id: currentChatId,
+        is_read: false
+      });
+
+    if (msgError) {
+      console.error("Error sending message:", msgError);
+      toast.error("Failed to send message");
+      return;
+    }
+
+    await supabase
+      .from('chats')
+      .update({
+        last_message: messageText,
+        last_message_time: new Date().toISOString()
+      })
+      .eq('id', currentChatId);
+  };
+
+  const handleKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      handleSendMessage();
     }
   };
 
@@ -258,28 +337,20 @@ export default function Messages() {
     setIsInfoPanelOpen(true);
   };
 
-  const handleImageUpload = () => {
-    imageInputRef.current?.click();
-  };
-
-  const handleFileUpload = () => {
-    fileInputRef.current?.click();
-  };
+  const handleAddMember = (member: GroupMember) => {};
+  const handleRemoveMember = (memberId: string) => {};
+  const handleImageUpload = () => imageInputRef.current?.click();
+  const handleFileUpload = () => fileInputRef.current?.click();
 
   const handleStartRecording = () => {
     setIsRecording(true);
     setRecordingTime(0);
-    recordingIntervalRef.current = setInterval(() => {
-      setRecordingTime((prev) => prev + 1);
-    }, 1000);
+    recordingIntervalRef.current = setInterval(() => setRecordingTime(prev => prev + 1), 1000);
   };
 
   const handleStopRecording = () => {
     setIsRecording(false);
-    if (recordingIntervalRef.current) {
-      clearInterval(recordingIntervalRef.current);
-    }
-    // Here you would handle the recorded audio
+    if (recordingIntervalRef.current) clearInterval(recordingIntervalRef.current);
   };
 
   const formatRecordingTime = (seconds: number) => {
@@ -288,9 +359,10 @@ export default function Messages() {
     return `${mins}:${secs.toString().padStart(2, "0")}`;
   };
 
-  const currentMessages = selectedGroup ? groupMessages : chatMessages;
-  const currentName = selectedGroup ? selectedGroup.name : selectedContact?.name;
-  const currentAvatar = selectedGroup ? selectedGroup.avatar : selectedContact?.avatar;
+  const availableMembers: GroupMember[] = [];
+  const currentMessages = chatMessages;
+  const currentName = selectedContact?.name || selectedGroup?.name || "";
+  const currentAvatar = selectedContact?.avatar || selectedGroup?.avatar || "";
 
   return (
     <DashboardLayout>
@@ -602,6 +674,7 @@ export default function Messages() {
                   placeholder="Type a Message here...."
                   value={messageInput}
                   onChange={(e) => setMessageInput(e.target.value)}
+                  onKeyDown={handleKeyPress}
                   className="flex-1 border-0 bg-transparent focus-visible:ring-0"
                 />
                 <div className="flex items-center gap-1">
@@ -629,7 +702,7 @@ export default function Messages() {
                   >
                     <Mic className="h-5 w-5" />
                   </Button>
-                  <Button size="icon" className="h-8 w-8 bg-primary hover:bg-primary/90">
+                  <Button size="icon" className="h-8 w-8 bg-primary hover:bg-primary/90" onClick={handleSendMessage}>
                     <Send className="h-4 w-4" />
                   </Button>
                 </div>

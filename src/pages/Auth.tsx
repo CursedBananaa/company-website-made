@@ -41,26 +41,13 @@ export default function Auth() {
       }
 
       if (isLogin) {
-        // ── Admin shortcut ──────────────────────────────────────────────
-        const isAdminLogin =
-          (formData.email === "admin" || formData.email === "admin@admin.com") &&
-          formData.password === "admin#12345";
-
-        if (isAdminLogin) {
-          localStorage.setItem("isAdminLoggedIn", "true");
-          toast.success("Welcome, Admin!");
-          navigate("/admin");
-          return;
-        }
-        // ────────────────────────────────────────────────────────────────
-
         const { data: authData, error } = await supabase.auth.signInWithPassword({
           email: formData.email,
           password: formData.password,
         });
         if (error) throw error;
 
-        // Check if user has company role
+        // Check user role
         if (authData.user) {
            const { data: userProfile } = await supabase
              .from('user')
@@ -68,16 +55,20 @@ export default function Auth() {
              .eq('auth_id', authData.user.id)
              .single();
            
-           
-           if (userProfile && (userProfile as User).role !== 'company') {
+           if (userProfile && (userProfile as User).role === 'admin') {
+              toast.success("Welcome, Admin!");
+              navigate("/admin");
+              return;
+           } else if (userProfile && (userProfile as User).role === 'company') {
+              toast.success("Welcome back!");
+              navigate("/dashboard");
+              return;
+           } else {
               await supabase.auth.signOut();
-              toast.error("Access restricted to company accounts only.");
+              toast.error("Access restricted to company and admin accounts only.");
               return;
            }
         }
-
-        toast.success("Welcome back!");
-        navigate("/dashboard");
       } else {
         const { data: authData, error: authError } = await supabase.auth.signUp({
           email: formData.email,

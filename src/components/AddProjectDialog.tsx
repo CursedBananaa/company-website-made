@@ -317,10 +317,10 @@ export function AddProjectDialog({ open, onOpenChange, projectToEdit }: AddProje
           {/* Submit Button */}
           <div className="flex justify-end pt-4">
             <Button 
+              type="submit"
               onClick={handleSubmit}
               disabled={isLoading}
               className="bg-primary hover:bg-primary/90 px-8"
-              disabled={isLoading}
             >
               {isLoading ? "Saving..." : (projectToEdit ? "Save Changes" : "Add Project")}
             </Button>

@@ -1,3 +1,4 @@
+import { useState, useEffect } from "react";
 import { Bell } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -9,40 +10,63 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { supabase } from "@/integrations/supabase/client";
 
-const notifications = [
-  {
-    id: 1,
-    title: "New applicant received",
-    description: "John Doe applied for Frontend Developer position",
-    time: "2 min ago",
-    unread: true,
-  },
-  {
-    id: 2,
-    title: "Project deadline approaching",
-    description: "Website Redesign project is due in 2 days",
-    time: "1 hour ago",
-    unread: true,
-  },
-  {
-    id: 3,
-    title: "Message from Sarah",
-    description: "Hey, can we schedule a meeting?",
-    time: "3 hours ago",
-    unread: false,
-  },
-  {
-    id: 4,
-    title: "Student completed course",
-    description: "Emily has completed the React course",
-    time: "Yesterday",
-    unread: false,
-  },
-];
+interface Notification {
+  id: number;
+  title: string;
+  description?: string;
+  time: string;
+  unread: boolean;
+}
 
 export function NotificationDropdown() {
-  const unreadCount = notifications.filter((n) => n.unread).length;
+  const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [unreadCount, setUnreadCount] = useState(0);
+
+  useEffect(() => {
+    const fetchNotifications = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const { data: userData } = await supabase
+        .from('user')
+        .select('id')
+        .eq('auth_id', user.id)
+        .single();
+
+      if (userData) {
+        const { data: notifs } = await supabase
+          .from("notifications")
+          .select("*")
+          .eq("u_id", userData.id)
+          .order("created_at", { ascending: false });
+
+        if (notifs) {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          const formatted = notifs.map((n: any) => ({
+            id: n.id,
+            title: n.title || "New Alert",
+            description: n.body,
+            time: new Date(n.created_at).toLocaleString(),
+            unread: !n.is_read,
+          }));
+          setNotifications(formatted);
+          setUnreadCount(formatted.filter((n: Notification) => n.unread).length);
+        }
+      }
+    };
+
+    fetchNotifications();
+  }, []);
+
+  const markAsRead = async (id: number) => {
+    await supabase.from("notifications").update({ is_read: true }).eq("id", id);
+    setNotifications((prev) =>
+      prev.map((n) => (n.id === id ? { ...n, unread: false } : n))
+    );
+    setUnreadCount((prev) => Math.max(0, prev - 1));
+  };
 
   return (
     <DropdownMenu>
@@ -67,27 +91,36 @@ export function NotificationDropdown() {
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
         <ScrollArea className="h-[300px]">
-          {notifications.map((notification) => (
-            <DropdownMenuItem
-              key={notification.id}
-              className="flex flex-col items-start gap-1 p-3 cursor-pointer focus:bg-muted"
-            >
-              <div className="flex items-center gap-2 w-full">
-                <span className="font-medium text-sm text-foreground">
-                  {notification.title}
-                </span>
-                {notification.unread && (
-                  <span className="h-2 w-2 rounded-full bg-primary ml-auto" />
+          {notifications.length === 0 ? (
+            <div className="p-4 text-center text-sm text-muted-foreground">
+              No notifications yet.
+            </div>
+          ) : (
+            notifications.map((notification) => (
+              <DropdownMenuItem
+                key={notification.id}
+                onClick={() => markAsRead(notification.id)}
+                className="flex flex-col items-start gap-1 p-3 cursor-pointer focus:bg-muted"
+              >
+                <div className="flex items-center gap-2 w-full">
+                  <span className="font-medium text-sm text-foreground">
+                    {notification.title}
+                  </span>
+                  {notification.unread && (
+                    <span className="h-2 w-2 rounded-full bg-primary ml-auto shrink-0" />
+                  )}
+                </div>
+                {notification.description && (
+                  <p className="text-xs text-muted-foreground line-clamp-1">
+                    {notification.description}
+                  </p>
                 )}
-              </div>
-              <p className="text-xs text-muted-foreground line-clamp-1">
-                {notification.description}
-              </p>
-              <span className="text-xs text-muted-foreground/70">
-                {notification.time}
-              </span>
-            </DropdownMenuItem>
-          ))}
+                <span className="text-xs text-muted-foreground/70">
+                  {notification.time}
+                </span>
+              </DropdownMenuItem>
+            ))
+          )}
         </ScrollArea>
         <DropdownMenuSeparator />
         <DropdownMenuItem className="justify-center text-primary cursor-pointer">

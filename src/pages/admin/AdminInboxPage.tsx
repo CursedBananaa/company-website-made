@@ -1,10 +1,12 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { AdminDashboardLayout } from "@/components/admin/DashboardLayout";
 import { Search, Phone, Video, Send, Paperclip, Smile, Image, ChevronDown, Check, CheckCheck, Users, Plus } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { supabase } from "@/integrations/supabase/client";
 
 interface Conversation {
-  id: string;
+  id: string; // The user ID of the other participant
+  chatId?: number; // The actual chat record ID
   name: string;
   avatar: string;
   lastMessage: string;
@@ -16,42 +18,251 @@ interface Conversation {
 }
 
 interface Message {
-  id: string;
+  id: number;
   content: string;
   sender: "me" | "other";
   timestamp: string;
   date: string;
-  link?: { text: string; url: string };
   isRead?: boolean;
   senderName?: string;
   senderLogo?: string;
 }
 
-const conversations: Conversation[] = [
-  { id: "1", name: "Maggie Sullivan", avatar: "MS", lastMessage: "Lorem ipsum ultricies elementum...", date: "12 Dec 2025", time: "10Am", unread: 1, isOnline: true },
-  { id: "2", name: "Alan Cain", avatar: "AC", lastMessage: "sed et nulla in consequat sagittis...", date: "12 NOV 2025", time: "9Pm", isRead: true },
-  { id: "3", name: "Gilbert Johnston", avatar: "GJ", lastMessage: "Aliquam ullamcorper a at as ut libero...", date: "12 NOV 2025", time: "9Pm", isRead: true },
-  { id: "4", name: "Christine Brooks", avatar: "CB", lastMessage: "sed et nulla in consequat sagittis...", date: "12 NOV 2025", time: "9Pm", unread: 6 },
-  { id: "5", name: "Rosie Pearson", avatar: "RP", lastMessage: "Aliquam ullamcorper a at as ut libero...", date: "7 Sep 2025", time: "Mon", isRead: true },
-];
-
-const groups = [
-  { id: "g1", name: "App Development", memberCount: 4 },
-  { id: "g2", name: "Backend", memberCount: 2 },
-  { id: "g3", name: "UI&UX Design", memberCount: 2 },
-];
-
-const messages: Message[] = [
-  { id: "1", content: "vulputate ultrices cras nisl pellentesque tempus aliquam et eget sollicitudin erat in mauris eros amet volutpat enim placerat", sender: "other", timestamp: "10:14 AM", date: "Yesterday", senderName: "Maggie Sullivan" },
-  { id: "2", content: "turpis donec ut sed elementum pellentesque at viverra arcu vitae urna varius fringilla", sender: "me", timestamp: "10:15 AM", date: "Yesterday", senderLogo: "Admin" },
-  { id: "3", content: "I Shared The first two page In If you first page\n\nYOU CAN SHOW THIS", sender: "other", timestamp: "10:14 AM", date: "Yesterday", senderName: "Maggie Sullivan", link: { text: "Sha6lny Graduation Project🎓 - Figma", url: "#" } },
-  { id: "4", content: "turpis donec ut sed elementum pellentesque at viverra arcu vitae urna varius fringilla turpis donec ut sed elementum pellentesque at viverra", sender: "me", timestamp: "10:16 AM", date: "Yesterday", senderLogo: "Admin", isRead: true },
-];
-
 const AdminInboxPage = () => {
-  const [selectedConversation, setSelectedConversation] = useState<Conversation>(conversations[0]);
+  const [conversations, setConversations] = useState<Conversation[]>([]);
+  const [selectedConversation, setSelectedConversation] = useState<Conversation | null>(null);
+  const [messages, setMessages] = useState<Message[]>([]);
   const [showProfile, setShowProfile] = useState(true);
   const [messageText, setMessageText] = useState("");
+  const [currentUserId, setCurrentUserId] = useState<number | null>(null);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const [onlineUsers, setOnlineUsers] = useState<Set<string>>(new Set());
+
+  // Auto-scroll to bottom of messages
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages]);
+
+  useEffect(() => {
+    if (!currentUserId) return;
+
+    const presenceChannel = supabase.channel('online-users', {
+      config: {
+        presence: {
+          key: currentUserId.toString(),
+        },
+      },
+    });
+
+    presenceChannel
+      .on('presence', { event: 'sync' }, () => {
+        const state = presenceChannel.presenceState();
+        setOnlineUsers(new Set(Object.keys(state)));
+      })
+      .subscribe(async (status) => {
+        if (status === 'SUBSCRIBED') {
+          await presenceChannel.track({ online_at: new Date().toISOString() });
+        }
+      });
+
+    return () => {
+      supabase.removeChannel(presenceChannel);
+    };
+  }, [currentUserId]);
+
+  useEffect(() => {
+    setConversations(prev => prev.map(c => ({
+      ...c,
+      isOnline: onlineUsers.has(c.id)
+    })));
+  }, [onlineUsers]);
+
+  // Fetch conversations
+  useEffect(() => {
+    const fetchConversations = async () => {
+      const { data: { user: authUser } } = await supabase.auth.getUser();
+      
+      if (!authUser) return;
+      
+      const { data: userData } = await supabase
+        .from('user')
+        .select('id, full_name')
+        .eq('auth_id', authUser.id)
+        .single();
+        
+      if (!userData) return;
+      setCurrentUserId(userData.id);
+
+      // Fetch all other users
+      const { data: users } = await supabase
+        .from('user')
+        .select('*')
+        .neq('id', userData.id);
+
+      // Fetch existing chats
+      const { data: chatsData } = await supabase
+        .from("chats")
+        .select("*")
+        .contains("participants", [userData.id.toString()])
+        .order("last_message_time", { ascending: false });
+
+      if (users) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const formattedChats = users.map((u: any) => {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          const existingChat = chatsData?.find((c: any) => c.participants && c.participants.includes(u.id.toString()));
+          const names = (u.full_name || "Unknown User").split(' ');
+          const avatarStr = names.length > 1 ? `${names[0][0]}${names[1][0]}`.toUpperCase() : (u.full_name || "U").substring(0, 2).toUpperCase();
+
+          return {
+            id: u.id.toString(),
+            chatId: existingChat?.id,
+            name: u.full_name || "Unknown User",
+            avatar: avatarStr,
+            lastMessage: existingChat?.last_message || "Start a conversation",
+            date: existingChat ? new Date(existingChat.last_message_time || existingChat.created_at).toLocaleDateString() : "",
+            time: existingChat ? new Date(existingChat.last_message_time || existingChat.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : "",
+            unread: existingChat?.unread_count || 0,
+            isRead: existingChat ? existingChat.unread_count === 0 : true,
+            isOnline: onlineUsers.has(u.id.toString()),
+          };
+        });
+
+        // Sort by existing chat with latest message first
+        formattedChats.sort((a, b) => {
+          if (a.chatId && !b.chatId) return -1;
+          if (!a.chatId && b.chatId) return 1;
+          return 0;
+        });
+
+        setConversations(formattedChats);
+        if (formattedChats.length > 0 && !selectedConversation) {
+          setSelectedConversation(formattedChats[0]);
+        }
+      }
+    };
+    fetchConversations();
+
+    const chatSub = supabase
+      .channel('admin_public_chats')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'chats' }, () => {
+        fetchConversations();
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(chatSub);
+    };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Fetch messages and subscribe to realtime
+  useEffect(() => {
+    if (!selectedConversation?.chatId || !currentUserId) {
+      setMessages([]);
+      return;
+    }
+
+    const fetchMessages = async () => {
+      const { data: messagesData } = await supabase
+        .from("messages")
+        .select("*")
+        .eq("chat_id", selectedConversation.chatId)
+        .order("created_at", { ascending: true });
+
+      if (messagesData) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const formattedMsgs = messagesData.map((msg: any) => ({
+          id: msg.id,
+          content: msg.content,
+          sender: msg.sender_id === currentUserId ? "me" : "other",
+          timestamp: new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+          date: new Date(msg.created_at).toLocaleDateString(),
+          senderName: msg.sender_id === currentUserId ? "Admin" : selectedConversation.name,
+          isRead: msg.is_read || true,
+        }));
+        setMessages(formattedMsgs);
+      }
+    };
+
+    fetchMessages();
+
+    // Subscribe
+    const channel = supabase
+      .channel(`admin_chat_${selectedConversation.chatId}`)
+      .on(
+        "postgres_changes",
+        { event: "INSERT", schema: "public", table: "messages", filter: `chat_id=eq.${selectedConversation.chatId}` },
+        (payload) => {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          const msg = payload.new as any;
+          const formattedMsg: Message = {
+            id: msg.id,
+            content: msg.content,
+            sender: msg.sender_id === currentUserId ? "me" : "other",
+            timestamp: new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+            date: new Date(msg.created_at).toLocaleDateString(),
+            senderName: msg.sender_id === currentUserId ? "Admin" : selectedConversation.name,
+            isRead: msg.is_read || true,
+          };
+          setMessages((prev) => [...prev, formattedMsg]);
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [selectedConversation, currentUserId]);
+
+  const handleSendMessage = async () => {
+    if (!messageText.trim() || !selectedConversation || !currentUserId) return;
+
+    const newMsg = messageText;
+    setMessageText("");
+
+    let currentChatId = selectedConversation.chatId;
+
+    if (!currentChatId) {
+      const { data: newChat, error: chatError } = await supabase
+        .from('chats')
+        .insert({
+          participants: [currentUserId.toString(), selectedConversation.id],
+          last_message: newMsg,
+          last_message_time: new Date().toISOString(),
+          unread_count: 0
+        })
+        .select()
+        .single();
+        
+      if (chatError) {
+        console.error("Error creating chat:", chatError);
+        toast.error("Failed to start chat");
+        return;
+      }
+      currentChatId = newChat.id;
+      setConversations(prev => prev.map(c => c.id === selectedConversation.id ? { ...c, chatId: currentChatId } : c));
+      setSelectedConversation(prev => prev ? { ...prev, chatId: currentChatId } : null);
+    } else {
+      await supabase.from("chats").update({
+        last_message: newMsg,
+        last_message_time: new Date().toISOString()
+      }).eq('id', currentChatId);
+    }
+
+    await supabase.from("messages").insert({
+      chat_id: currentChatId,
+      sender_id: currentUserId,
+      content: newMsg,
+    });
+  };
+
+  const handleKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      handleSendMessage();
+    }
+  };
 
   return (
     <AdminDashboardLayout>
@@ -76,7 +287,7 @@ const AdminInboxPage = () => {
                 onClick={() => setSelectedConversation(conv)}
                 className={cn(
                   "flex items-start gap-3 p-4 cursor-pointer transition-colors border-b border-border/50",
-                  selectedConversation.id === conv.id ? "bg-accent" : "hover:bg-muted/50"
+                  selectedConversation?.id === conv.id ? "bg-accent" : "hover:bg-muted/50"
                 )}
               >
                 <div className="relative shrink-0">
@@ -109,49 +320,39 @@ const AdminInboxPage = () => {
 
             <div className="px-4 py-3 border-b border-border flex items-center justify-between">
               <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                Groups ({groups.length})
+                Groups (0)
               </span>
               <button className="p-1 rounded hover:bg-muted transition-colors">
                 <Plus className="h-4 w-4 text-muted-foreground" />
               </button>
             </div>
 
-            {groups.map((group) => (
-              <div key={group.id} className="flex items-center gap-3 p-4 cursor-pointer transition-colors border-b border-border/50 hover:bg-muted/50">
-                <div className="h-10 w-10 rounded-full bg-muted flex items-center justify-center shrink-0">
-                  <Users className="h-5 w-5 text-muted-foreground" />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <span className="font-medium text-foreground">{group.name}</span>
-                </div>
-                <span className="h-6 min-w-6 px-1.5 rounded-full bg-green-500 text-white text-xs font-medium flex items-center justify-center shrink-0">
-                  +{group.memberCount}
-                </span>
-              </div>
-            ))}
+
           </div>
         </div>
 
         {/* Chat Area */}
         <div className="flex-1 bg-card rounded-xl border border-border overflow-hidden flex flex-col min-w-0">
           <div className="h-16 px-4 border-b border-border flex items-center justify-between shrink-0">
-            <button
-              onClick={() => setShowProfile(!showProfile)}
-              className="flex items-center gap-3 hover:bg-muted/50 rounded-lg p-1 -ml-1 transition-colors"
-            >
-              <div className="relative">
-                <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
-                  <span className="text-sm font-medium text-primary">{selectedConversation.avatar}</span>
+            {selectedConversation && (
+              <button
+                onClick={() => setShowProfile(!showProfile)}
+                className="flex items-center gap-3 hover:bg-muted/50 rounded-lg p-1 -ml-1 transition-colors"
+              >
+                <div className="relative">
+                  <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
+                    <span className="text-sm font-medium text-primary">{selectedConversation.avatar}</span>
+                  </div>
+                  {selectedConversation.isOnline && (
+                    <div className="absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full bg-green-500 border-2 border-card" />
+                  )}
                 </div>
-                {selectedConversation.isOnline && (
-                  <div className="absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full bg-green-500 border-2 border-card" />
-                )}
-              </div>
-              <div className="text-left">
-                <h3 className="font-semibold text-foreground">{selectedConversation.name}</h3>
-                <p className="text-xs text-muted-foreground">UI&UX Designer</p>
-              </div>
-            </button>
+                <div className="text-left">
+                  <h3 className="font-semibold text-foreground">{selectedConversation.name}</h3>
+                  <p className="text-xs text-muted-foreground">Admin Chat</p>
+                </div>
+              </button>
+            )}
             <div className="flex items-center gap-2">
               <button className="p-2 rounded-lg hover:bg-muted transition-colors">
                 <Search className="h-5 w-5 text-muted-foreground" />
@@ -172,7 +373,7 @@ const AdminInboxPage = () => {
                   {msg.sender === "other" && (
                     <div className="flex items-center gap-2 mb-1">
                       <div className="h-6 w-6 rounded-full bg-primary/10 flex items-center justify-center">
-                        <span className="text-xs font-medium text-primary">{selectedConversation.avatar}</span>
+                        <span className="text-xs font-medium text-primary">{selectedConversation?.avatar}</span>
                       </div>
                       <span className="text-xs font-medium text-foreground">{msg.senderName}</span>
                       <span className="text-xs text-muted-foreground">{msg.date} {msg.timestamp}</span>
@@ -180,9 +381,6 @@ const AdminInboxPage = () => {
                   )}
                   <div className={cn("rounded-2xl px-4 py-3", msg.sender === "me" ? "bg-primary text-primary-foreground rounded-br-md" : "bg-muted text-foreground rounded-bl-md")}>
                     <p className="text-sm whitespace-pre-line">{msg.content}</p>
-                    {msg.link && (
-                      <a href={msg.link.url} className="text-sm text-primary-foreground underline mt-2 block">{msg.link.text}</a>
-                    )}
                   </div>
                   {msg.sender === "me" && (
                     <div className="flex items-center justify-end gap-2 mt-1">
@@ -193,6 +391,7 @@ const AdminInboxPage = () => {
                 </div>
               </div>
             ))}
+            <div ref={messagesEndRef} />
           </div>
 
           <div className="p-4 border-t border-border shrink-0">
@@ -202,6 +401,7 @@ const AdminInboxPage = () => {
                   type="text"
                   value={messageText}
                   onChange={(e) => setMessageText(e.target.value)}
+                  onKeyDown={handleKeyPress}
                   placeholder="Type a Message here...."
                   className="w-full h-12 px-4 pr-32 rounded-lg border border-input bg-background text-sm focus:outline-none focus:ring-2 focus:ring-ring"
                 />
@@ -211,7 +411,11 @@ const AdminInboxPage = () => {
                   <button className="p-2 rounded-lg hover:bg-muted transition-colors"><Paperclip className="h-5 w-5 text-muted-foreground" /></button>
                 </div>
               </div>
-              <button className="h-12 w-12 rounded-full bg-primary text-primary-foreground flex items-center justify-center hover:bg-primary/90 transition-colors">
+              <button 
+                onClick={handleSendMessage}
+                disabled={!selectedConversation}
+                className="h-12 w-12 rounded-full bg-primary text-primary-foreground flex items-center justify-center hover:bg-primary/90 transition-colors disabled:opacity-50"
+              >
                 <Send className="h-5 w-5" />
               </button>
             </div>
@@ -219,15 +423,15 @@ const AdminInboxPage = () => {
         </div>
 
         {/* User Profile Panel */}
-        {showProfile && (
+        {showProfile && selectedConversation && (
           <div className="w-72 bg-card rounded-xl border border-border overflow-hidden shrink-0">
             <div className="p-6 text-center border-b border-border">
               <div className="h-20 w-20 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-3">
                 <span className="text-2xl font-bold text-primary">{selectedConversation.avatar}</span>
               </div>
               <h3 className="font-semibold text-foreground text-lg">{selectedConversation.name}</h3>
-              <p className="text-sm text-muted-foreground">UI&UX Designer</p>
-              <p className="text-xs text-muted-foreground mt-1">San Francisco, California</p>
+              <p className="text-sm text-muted-foreground">System Chat</p>
+              <p className="text-xs text-muted-foreground mt-1">Global</p>
               <div className="flex items-center justify-center gap-2 mt-4">
                 <button className="h-10 w-10 rounded-full bg-accent flex items-center justify-center hover:bg-accent/80 transition-colors">
                   <Phone className="h-5 w-5 text-accent-foreground" />

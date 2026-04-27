@@ -1,9 +1,12 @@
 import { useState } from "react";
 import { AdminDashboardLayout } from "@/components/admin/DashboardLayout";
 import { useNavigate } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 const AdminAddAnnouncementPage = () => {
   const navigate = useNavigate();
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState({
     name: "",
     description: "",
@@ -16,8 +19,38 @@ const AdminAddAnnouncementPage = () => {
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
-  const handleSubmit = () => {
-    navigate("/admin/announcement");
+  const handleSubmit = async () => {
+    if (!formData.name) {
+      toast.error("Please enter an announcement name");
+      return;
+    }
+
+    try {
+      setIsSubmitting(true);
+      const { error } = await supabase.from("announcement").insert({
+        name: formData.name,
+        description: formData.description,
+        link: formData.link,
+        // Using ts-expect-error because these columns might not exist yet if user ran my exact SQL
+        // @ts-expect-error - ignore missing types
+        department: formData.department,
+        // @ts-expect-error - ignore missing types
+        deadline: formData.deadline || null
+      });
+
+      if (error) {
+        toast.error("Database table 'announcement' does not exist yet. Please run the SQL command provided.");
+        console.error(error);
+      } else {
+        toast.success("Announcement added successfully!");
+        navigate("/admin/announcement");
+      }
+    } catch (err) {
+      toast.error("An error occurred");
+      console.error(err);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -93,9 +126,10 @@ const AdminAddAnnouncementPage = () => {
           <div className="flex justify-center pt-4">
             <button
               onClick={handleSubmit}
-              className="px-10 py-3 rounded-full bg-primary text-primary-foreground font-medium hover:bg-primary/90 transition-colors"
+              disabled={isSubmitting}
+              className="px-10 py-3 rounded-full bg-primary text-primary-foreground font-medium hover:bg-primary/90 transition-colors disabled:opacity-50"
             >
-              Add Now
+              {isSubmitting ? "Adding..." : "Add Now"}
             </button>
           </div>
         </div>

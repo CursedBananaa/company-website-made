@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { AdminNotificationsPanel, AdminNotificationBell } from "./NotificationsPanel";
+import { useProfile } from "@/contexts/ProfileContext";
 
 interface SidebarProps {
   children: React.ReactNode;
@@ -40,14 +41,15 @@ export function AdminDashboardLayout({ children }: SidebarProps) {
   const [notificationsOpen, setNotificationsOpen] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
+  const { signOut } = useProfile();
 
   const isActive = (href: string) => {
     if (href === "/admin") return location.pathname === "/admin";
     return location.pathname.startsWith(href);
   };
 
-  const handleLogout = () => {
-    localStorage.removeItem("isAdminLoggedIn");
+  const handleLogout = async () => {
+    await signOut();
     navigate("/auth");
   };
 

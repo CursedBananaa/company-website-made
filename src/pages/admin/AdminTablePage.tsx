@@ -1,7 +1,9 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { AdminDashboardLayout } from "@/components/admin/DashboardLayout";
 import { Filter, ChevronDown, RotateCcw } from "lucide-react";
 import { cn } from "@/lib/utils";
+
+import { supabase } from "@/integrations/supabase/client";
 
 interface Student {
   id: string;
@@ -12,18 +14,62 @@ interface Student {
   appliedInternship: string;
 }
 
-const students: Student[] = [
-  { id: "00001", name: "Christine Brooks", stdYear: "1st year", date: "04 Sep 2019", department: "Electric", appliedInternship: "We (big data)" },
-  { id: "00002", name: "Rosie Pearson", stdYear: "979 Immanuel Ferry Suite 526", date: "28 May 2019", department: "computer", appliedInternship: "We (big data)" },
-  { id: "00003", name: "Darrell Caldwell", stdYear: "8587 Frida Ports", date: "23 Nov 2019", department: "", appliedInternship: "Nothing" },
-  { id: "00004", name: "Gilbert Johnston", stdYear: "768 Destiny Lake Suite 600", date: "05 Feb 2019", department: "Mobile", appliedInternship: "We (big data)" },
-  { id: "00005", name: "Alan Cain", stdYear: "042 Mylene Throughway", date: "29 Jul 2019", department: "", appliedInternship: "Watch" },
-  { id: "00006", name: "Alfred Murray", stdYear: "543 Weinmann Mountain", date: "15 Aug 2019", department: "", appliedInternship: "Medicine" },
-  { id: "00007", name: "Maggie Sullivan", stdYear: "New Scottieberg", date: "21 Dec 2019", department: "", appliedInternship: "Watch" },
-  { id: "00008", name: "Rosie Todd", stdYear: "New Jon", date: "30 Apr 2019", department: "", appliedInternship: "Medicine" },
-];
-
 const AdminTablePage = () => {
+  const [students, setStudents] = useState<Student[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchStudents = async () => {
+      try {
+        setIsLoading(true);
+        // Fetch users with role student
+        const { data: users } = await supabase
+          .from("user")
+          .select("*, student_profile(*)")
+          .eq("role", "student");
+
+        // Fetch applications to see internships
+        const { data: applications } = await supabase
+          .from("application")
+          .select("student_id, opportunity_id, opportunity(title)");
+
+        if (users) {
+          const formattedStudents = users.map(user => {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            const profiles = (user as any).student_profile || [];
+            const profile = Array.isArray(profiles) ? profiles[0] : profiles;
+            
+            // Find applications for this student
+            const studentApps = applications?.filter(app => app.student_id === user.id) || [];
+            let appliedText = "None";
+            if (studentApps.length === 1) {
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              appliedText = (studentApps[0] as any).opportunity?.title || "Unknown";
+            } else if (studentApps.length > 1) {
+              appliedText = `${studentApps.length} Applications`;
+            }
+
+            return {
+              id: user.id.toString().padStart(5, '0'),
+              name: user.full_name || "Unknown",
+              stdYear: profile?.grad_year || "Unknown",
+              date: new Date(user.created_at).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }),
+              department: profile?.major || "Unknown",
+              appliedInternship: appliedText,
+            };
+          });
+          setStudents(formattedStudents);
+        }
+      } catch (error) {
+        console.error("Error fetching students:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchStudents();
+  }, []);
+
   return (
     <AdminDashboardLayout>
       <div className="space-y-6">
@@ -66,22 +112,32 @@ const AdminTablePage = () => {
                 </tr>
               </thead>
               <tbody>
-                {students.map((student, index) => (
-                  <tr
-                    key={student.id}
-                    className={cn(
-                      "border-b border-border last:border-0 hover:bg-muted/50 transition-colors",
-                      index % 2 === 0 ? "bg-card" : "bg-muted/20"
-                    )}
-                  >
-                    <td className="py-4 px-6 text-sm text-muted-foreground">{student.id}</td>
-                    <td className="py-4 px-6 text-sm font-medium text-foreground">{student.name}</td>
-                    <td className="py-4 px-6 text-sm text-muted-foreground">{student.stdYear}</td>
-                    <td className="py-4 px-6 text-sm text-muted-foreground">{student.date}</td>
-                    <td className="py-4 px-6 text-sm text-muted-foreground">{student.department}</td>
-                    <td className="py-4 px-6 text-sm text-muted-foreground">{student.appliedInternship}</td>
+                {isLoading ? (
+                  <tr>
+                    <td colSpan={6} className="text-center py-8 text-muted-foreground">Loading...</td>
                   </tr>
-                ))}
+                ) : students.length === 0 ? (
+                  <tr>
+                    <td colSpan={6} className="text-center py-8 text-muted-foreground">No students found</td>
+                  </tr>
+                ) : (
+                  students.map((student, index) => (
+                    <tr
+                      key={student.id}
+                      className={cn(
+                        "border-b border-border last:border-0 hover:bg-muted/50 transition-colors",
+                        index % 2 === 0 ? "bg-card" : "bg-muted/20"
+                      )}
+                    >
+                      <td className="py-4 px-6 text-sm text-muted-foreground">{student.id}</td>
+                      <td className="py-4 px-6 text-sm font-medium text-foreground">{student.name}</td>
+                      <td className="py-4 px-6 text-sm text-muted-foreground">{student.stdYear}</td>
+                      <td className="py-4 px-6 text-sm text-muted-foreground">{student.date}</td>
+                      <td className="py-4 px-6 text-sm text-muted-foreground">{student.department}</td>
+                      <td className="py-4 px-6 text-sm text-muted-foreground">{student.appliedInternship}</td>
+                    </tr>
+                  ))
+                )}
               </tbody>
             </table>
           </div>
