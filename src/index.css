@@ -126,3 +126,73 @@
     @apply bg-destructive/20 text-destructive;
   }
 }
+
+/* ── Admin-specific component classes ───────────────────────── */
+@layer components {
+  /* Sidebar variables */
+  :root {
+    --sidebar: 0 0% 100%;
+    --sidebar-border: 220 13% 91%;
+    --online: 142 71% 45%;
+    --status-progress: 237 55% 56%;
+    --status-progress-bg: 237 55% 95%;
+    --status-complete: 142 71% 45%;
+    --status-complete-bg: 142 71% 95%;
+    --status-pending: 38 92% 50%;
+    --status-pending-bg: 38 92% 95%;
+    --status-approved: 262 83% 58%;
+    --status-approved-bg: 262 83% 95%;
+  }
+
+  .dark {
+    --sidebar: 240 10% 6%;
+    --sidebar-border: 240 3.7% 15.9%;
+  }
+
+  .bg-sidebar { background-color: hsl(var(--sidebar)); }
+  .border-sidebar-border { border-color: hsl(var(--sidebar-border)); }
+
+  .admin-nav-item {
+    @apply flex items-center gap-3 px-4 py-3 rounded-lg text-muted-foreground transition-all duration-200 hover:bg-accent hover:text-accent-foreground;
+  }
+
+  .admin-nav-item-active {
+    @apply bg-primary text-primary-foreground hover:bg-primary/90 hover:text-primary-foreground;
+  }
+
+  .admin-dashboard-card {
+    @apply bg-card rounded-xl p-5 shadow-sm border border-border/50;
+  }
+
+  .admin-status-badge {
+    @apply px-3 py-1 rounded-full text-xs font-medium;
+  }
+
+  .admin-status-progress {
+    background-color: hsl(var(--status-progress-bg));
+    color: hsl(var(--status-progress));
+  }
+
+  .admin-status-complete {
+    background-color: hsl(var(--status-complete-bg));
+    color: hsl(var(--status-complete));
+  }
+
+  .admin-status-pending {
+    background-color: hsl(var(--status-pending-bg));
+    color: hsl(var(--status-pending));
+  }
+
+  .admin-status-approved {
+    background-color: hsl(var(--status-approved-bg));
+    color: hsl(var(--status-approved));
+  }
+
+  .admin-opportunity-card {
+    @apply bg-card rounded-xl border border-border/50 p-4 shadow-sm transition-all duration-200 hover:shadow-md;
+  }
+
+  .admin-filter-button {
+    @apply px-4 py-2 border border-border rounded-lg text-sm font-medium text-foreground bg-card hover:bg-muted transition-colors;
+  }
+}

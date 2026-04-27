@@ -41,6 +41,19 @@ export default function Auth() {
       }
 
       if (isLogin) {
+        // ── Admin shortcut ──────────────────────────────────────────────
+        const isAdminLogin =
+          (formData.email === "admin" || formData.email === "admin@admin.com") &&
+          formData.password === "admin#12345";
+
+        if (isAdminLogin) {
+          localStorage.setItem("isAdminLoggedIn", "true");
+          toast.success("Welcome, Admin!");
+          navigate("/admin");
+          return;
+        }
+        // ────────────────────────────────────────────────────────────────
+
         const { data: authData, error } = await supabase.auth.signInWithPassword({
           email: formData.email,
           password: formData.password,
@@ -212,13 +225,13 @@ export default function Auth() {
             )}
 
             <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
+              <Label htmlFor="email">Email or Username</Label>
               <div className="relative">
                 <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
                   id="email"
-                  type="email"
-                  placeholder="you@example.com"
+                  type="text"
+                  placeholder="you@example.com or admin"
                   value={formData.email}
                   onChange={(e) =>
                     setFormData({ ...formData, email: e.target.value })
