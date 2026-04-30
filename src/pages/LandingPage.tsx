@@ -8,7 +8,7 @@ import Antigravity from '@/components/ui/Antigravity';
 
 export default function LandingPage() {
   const navigate = useNavigate();
-  const { profile } = useProfile();
+  const { profile, signOut } = useProfile();
   const [coverFinished, setCoverFinished] = useState(false);
 
   return (
@@ -27,7 +27,10 @@ export default function LandingPage() {
           <div className="nav-actions">
             <ThemeToggle />
             {profile.userId ? (
-              <button className="btn-login" onClick={() => navigate('/dashboard')}>Dashboard</button>
+              <>
+                <button className="btn-login" onClick={() => navigate(profile.role === 'admin' ? '/admin' : '/dashboard')}>Dashboard</button>
+                <button className="btn-register" onClick={async () => { await signOut(); navigate('/'); }}>Log out</button>
+              </>
             ) : (
               <>
                 <button className="btn-login" onClick={() => navigate('/auth')}>Login</button>

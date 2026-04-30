@@ -13,6 +13,63 @@ interface Opportunity {
   postedDays: number;
 }
 
+const THEMES = [
+  { 
+    cardGlow: 'hover:shadow-[0_0_20px_rgba(59,130,246,0.3)] hover:border-blue-500/50',
+    buttonBg: 'bg-blue-500',
+    buttonHover: 'hover:bg-blue-600',
+    buttonGlow: 'shadow-[0_0_15px_rgba(59,130,246,0.5)]',
+    iconColor: 'text-blue-500',
+    iconBg: 'bg-blue-500/10',
+    titleColor: 'group-hover:text-blue-500 group-hover:drop-shadow-[0_0_8px_rgba(59,130,246,0.5)]'
+  },
+  { 
+    cardGlow: 'hover:shadow-[0_0_20px_rgba(16,185,129,0.3)] hover:border-emerald-500/50',
+    buttonBg: 'bg-emerald-500',
+    buttonHover: 'hover:bg-emerald-600',
+    buttonGlow: 'shadow-[0_0_15px_rgba(16,185,129,0.5)]',
+    iconColor: 'text-emerald-500',
+    iconBg: 'bg-emerald-500/10',
+    titleColor: 'group-hover:text-emerald-500 group-hover:drop-shadow-[0_0_8px_rgba(16,185,129,0.5)]'
+  },
+  { 
+    cardGlow: 'hover:shadow-[0_0_20px_rgba(139,92,246,0.3)] hover:border-violet-500/50',
+    buttonBg: 'bg-violet-500',
+    buttonHover: 'hover:bg-violet-600',
+    buttonGlow: 'shadow-[0_0_15px_rgba(139,92,246,0.5)]',
+    iconColor: 'text-violet-500',
+    iconBg: 'bg-violet-500/10',
+    titleColor: 'group-hover:text-violet-500 group-hover:drop-shadow-[0_0_8px_rgba(139,92,246,0.5)]'
+  },
+  { 
+    cardGlow: 'hover:shadow-[0_0_20px_rgba(244,63,94,0.3)] hover:border-rose-500/50',
+    buttonBg: 'bg-rose-500',
+    buttonHover: 'hover:bg-rose-600',
+    buttonGlow: 'shadow-[0_0_15px_rgba(244,63,94,0.5)]',
+    iconColor: 'text-rose-500',
+    iconBg: 'bg-rose-500/10',
+    titleColor: 'group-hover:text-rose-500 group-hover:drop-shadow-[0_0_8px_rgba(244,63,94,0.5)]'
+  },
+  { 
+    cardGlow: 'hover:shadow-[0_0_20px_rgba(245,158,11,0.3)] hover:border-amber-500/50',
+    buttonBg: 'bg-amber-500',
+    buttonHover: 'hover:bg-amber-600',
+    buttonGlow: 'shadow-[0_0_15px_rgba(245,158,11,0.5)]',
+    iconColor: 'text-amber-500',
+    iconBg: 'bg-amber-500/10',
+    titleColor: 'group-hover:text-amber-500 group-hover:drop-shadow-[0_0_8px_rgba(245,158,11,0.5)]'
+  },
+  { 
+    cardGlow: 'hover:shadow-[0_0_20px_rgba(6,182,212,0.3)] hover:border-cyan-500/50',
+    buttonBg: 'bg-cyan-500',
+    buttonHover: 'hover:bg-cyan-600',
+    buttonGlow: 'shadow-[0_0_15px_rgba(6,182,212,0.5)]',
+    iconColor: 'text-cyan-500',
+    iconBg: 'bg-cyan-500/10',
+    titleColor: 'group-hover:text-cyan-500 group-hover:drop-shadow-[0_0_8px_rgba(6,182,212,0.5)]'
+  }
+];
+
 const AdminOpportunitiesPage = () => {
   const [opportunities, setOpportunities] = useState<Opportunity[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -74,8 +131,10 @@ const AdminOpportunitiesPage = () => {
           ) : opportunities.length === 0 ? (
             <div className="col-span-full py-12 text-center text-muted-foreground">No opportunities found.</div>
           ) : (
-            opportunities.map((opp) => (
-              <div key={opp.id} className="admin-opportunity-card">
+            opportunities.map((opp, index) => {
+              const theme = THEMES[index % THEMES.length];
+              return (
+              <div key={opp.id} className={`admin-opportunity-card group transition-all duration-300 ${theme.cardGlow}`}>
                 <div className="flex items-center justify-between mb-4">
                   <span className="text-xs text-muted-foreground bg-muted px-2 py-1 rounded">
                     Posted {opp.postedDays} days ago
@@ -90,18 +149,20 @@ const AdminOpportunitiesPage = () => {
                 </div>
 
                 <div className="flex items-start gap-3 mb-4">
-                  <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
-                    <FileText className="h-5 w-5 text-primary" />
+                  <div className={`h-10 w-10 rounded-lg flex items-center justify-center shrink-0 ${theme.iconBg}`}>
+                    <FileText className={`h-5 w-5 ${theme.iconColor}`} />
                   </div>
                   <div>
-                    <h3 className="font-semibold text-foreground leading-tight">{opp.title}</h3>
+                    <h3 className={`font-semibold text-foreground leading-tight transition-all duration-300 ${theme.titleColor}`}>
+                      {opp.title}
+                    </h3>
                     <p className="text-xs text-muted-foreground mt-1">{opp.company}</p>
                   </div>
                 </div>
 
                 <div className="flex flex-wrap gap-2 mb-4">
-                  {opp.tags.map((tag, index) => (
-                    <span key={index} className="text-xs px-3 py-1 rounded-full bg-muted text-muted-foreground">
+                  {opp.tags.map((tag, tagIndex) => (
+                    <span key={tagIndex} className="text-xs px-3 py-1 rounded-full bg-muted text-muted-foreground">
                       {tag}
                     </span>
                   ))}
@@ -114,12 +175,12 @@ const AdminOpportunitiesPage = () => {
 
                 <Link
                   to={`/admin/opportunities/${opp.id}/applicants`}
-                  className="block w-full text-center py-3 rounded-lg bg-primary text-primary-foreground font-medium hover:bg-primary/90 transition-colors"
+                  className={`block w-full text-center py-3 rounded-lg text-white font-medium transition-all duration-300 ${theme.buttonBg} ${theme.buttonHover} ${theme.buttonGlow} hover:shadow-[0_0_20px_rgba(255,255,255,0.2)]`}
                 >
                   View Applicant
                 </Link>
               </div>
-            ))
+            )})
           )}
         </div>
 

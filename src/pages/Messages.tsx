@@ -6,7 +6,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Search, Phone, Video, Image, Paperclip, Mic, Send, Plus, CheckCheck, X, FileText, Play, Pause, Users, UserPlus, Trash2 } from "lucide-react";
+import { Search, Phone, Video, Image, Paperclip, Mic, Send, Plus, CheckCheck, X, FileText, Play, Pause, Users, UserPlus, Trash2, ChevronLeft } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { toast } from "sonner";
@@ -177,6 +177,13 @@ export default function Messages() {
     formattedContacts.sort((a, b) => {
       if (a.chatId && !b.chatId) return -1;
       if (!a.chatId && b.chatId) return 1;
+      if (a.chatId && b.chatId) {
+        const chatA = userChats?.find(c => c.id === a.chatId);
+        const chatB = userChats?.find(c => c.id === b.chatId);
+        const timeA = chatA?.last_message_time ? new Date(chatA.last_message_time).getTime() : 0;
+        const timeB = chatB?.last_message_time ? new Date(chatB.last_message_time).getTime() : 0;
+        return timeB - timeA;
+      }
       return 0;
     });
 
@@ -366,7 +373,7 @@ export default function Messages() {
 
   return (
     <DashboardLayout>
-      <div className="flex h-[calc(100vh-7rem)] gap-0 -m-6 mt-0">
+      <div className="flex h-[calc(100vh-7rem)] gap-0 -m-6 mt-0 relative overflow-hidden">
         {/* Hidden file inputs */}
         <input
           type="file"
@@ -384,7 +391,10 @@ export default function Messages() {
         />
 
         {/* Contacts Sidebar */}
-        <div className="w-80 bg-card border-r border-border flex flex-col">
+        <div className={cn(
+          "w-full md:w-80 bg-card border-r border-border flex flex-col shrink-0",
+          (selectedContact || selectedGroup) ? "hidden md:flex" : "flex"
+        )}>
           {/* Contacts List */}
           <ScrollArea className="flex-1">
             <div className="p-2">
@@ -473,13 +483,28 @@ export default function Messages() {
         </div>
 
         {/* Chat Area */}
-        <div className="flex-1 flex flex-col bg-background">
+        <div className={cn(
+          "flex-1 flex flex-col bg-background min-w-0",
+          !(selectedContact || selectedGroup) ? "hidden md:flex" : "flex"
+        )}>
           {/* Chat Header */}
-          <div className="h-16 border-b border-border flex items-center justify-between px-6 bg-card">
-            <div 
-              className="flex items-center gap-3 cursor-pointer hover:opacity-80 transition-opacity"
-              onClick={() => setIsInfoPanelOpen(true)}
-            >
+          <div className="h-16 border-b border-border flex items-center justify-between px-4 md:px-6 bg-card shrink-0">
+            <div className="flex items-center gap-3">
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                className="md:hidden -ml-2 text-muted-foreground"
+                onClick={() => {
+                  setSelectedContact(null);
+                  setSelectedGroup(null);
+                }}
+              >
+                <ChevronLeft className="h-5 w-5" />
+              </Button>
+              <div 
+                className="flex items-center gap-3 cursor-pointer hover:opacity-80 transition-opacity"
+                onClick={() => setIsInfoPanelOpen(true)}
+              >
               {selectedGroup ? (
                 <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center">
                   <Users className="h-5 w-5 text-primary" />
@@ -501,6 +526,7 @@ export default function Messages() {
                 </p>
               </div>
             </div>
+          </div>
             <div className="flex items-center gap-2">
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />

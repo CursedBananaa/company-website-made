@@ -15,6 +15,7 @@ import {
 import { cn } from "@/lib/utils";
 import { AdminNotificationsPanel, AdminNotificationBell } from "./NotificationsPanel";
 import { useProfile } from "@/contexts/ProfileContext";
+import { ThemeToggle } from "@/components/ThemeToggle";
 
 interface SidebarProps {
   children: React.ReactNode;
@@ -70,18 +71,21 @@ export function AdminDashboardLayout({ children }: SidebarProps) {
   const SidebarContent = () => (
     <div className="flex h-full flex-col">
       {/* Logo */}
-      <Link
-        to="/"
-        className="flex h-16 items-center gap-2 px-4 border-b border-sidebar-border hover:opacity-80 transition-opacity cursor-pointer"
-        title="Return to Landing Page"
-      >
-        <div className="h-8 w-8 rounded-lg bg-primary flex items-center justify-center">
-          <span className="text-primary-foreground font-bold text-sm">S</span>
-        </div>
-        {!collapsed && (
-          <span className="text-lg font-semibold text-primary">sha8lny</span>
-        )}
-      </Link>
+      <div className="px-3 py-6 border-b border-sidebar-border">
+        <Link
+          to="/"
+          className={cn(
+            "block w-full text-center font-['Pecita'] font-bold text-primary hover:opacity-90 transition-all cursor-pointer",
+            collapsed ? "text-2xl" : "text-4xl"
+          )}
+          style={{
+            textShadow: '0 0 20px hsl(var(--primary) / 0.6), 0 0 40px hsl(var(--primary) / 0.4), 0 0 60px hsl(var(--primary) / 0.2)'
+          }}
+          title="Return to Landing Page"
+        >
+          {collapsed ? "S" : "Sha8lny"}
+        </Link>
+      </div>
 
       {/* Main Navigation */}
       <div className="flex-1 overflow-y-auto py-4 px-3 space-y-1">
@@ -201,6 +205,7 @@ export function AdminDashboardLayout({ children }: SidebarProps) {
             </div>
           </div>
           <div className="flex items-center gap-4">
+            <ThemeToggle />
             <AdminNotificationBell
               onClick={() => setNotificationsOpen(true)}
               hasNew={true}
@@ -214,6 +219,9 @@ export function AdminDashboardLayout({ children }: SidebarProps) {
                 <p className="text-xs text-muted-foreground">Administrator</p>
               </div>
             </Link>
+            <button onClick={handleLogout} className="ml-2 p-2 text-muted-foreground hover:text-destructive transition-colors" title="Logout">
+              <LogOut className="h-5 w-5" />
+            </button>
           </div>
         </header>
 

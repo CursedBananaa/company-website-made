@@ -16,7 +16,38 @@
   <meta name="twitter:card" content="summary_large_image" />
   <meta name="twitter:site" content="@Sha8lny" />
   <meta name="twitter:image" content="/placeholder.svg" />
-  <link rel="icon" type="image/svg+xml" href="./public/app_logo.png" />
+  <link rel="icon" id="dynamic-favicon" type="image/svg+xml" href="/favicon.svg?v=2" />
+  <script>
+    window.addEventListener('load', () => {
+      // Force font load if not already triggered
+      const font = new FontFace('Pecita', 'url(https://db.onlinewebfonts.com/t/5e605ff6994ce0e533aaf6cd51c6a33f.woff2)');
+      font.load().then((loadedFont) => {
+        document.fonts.add(loadedFont);
+        
+        const canvas = document.createElement('canvas');
+        canvas.width = 64;
+        canvas.height = 64;
+        const ctx = canvas.getContext('2d');
+        
+        ctx.font = '50px Pecita';
+        ctx.fillStyle = '#53599A';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        
+        ctx.shadowColor = 'rgba(83, 89, 154, 0.6)';
+        ctx.shadowBlur = 6;
+        
+        // Draw the S slightly offset to account for cursive leaning
+        ctx.fillText('S', 32, 36);
+        
+        const link = document.getElementById('dynamic-favicon');
+        if (link) {
+          link.type = 'image/png';
+          link.href = canvas.toDataURL('image/png');
+        }
+      }).catch(console.error);
+    });
+  </script>
 </head>
 
 <body>

@@ -1,13 +1,19 @@
-import { Search, ChevronDown } from "lucide-react";
+import { Search, ChevronDown, LogOut } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { NotificationDropdown } from "@/components/NotificationDropdown";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useProfile } from "@/contexts/ProfileContext";
 
 export function Header() {
-  const { profile } = useProfile();
+  const { profile, signOut } = useProfile();
+  const navigate = useNavigate();
+
+  const handleLogout = async () => {
+    await signOut();
+    navigate("/");
+  };
 
   return (
     <header className="h-16 bg-card border-b border-border flex items-center justify-between px-6">
@@ -36,6 +42,9 @@ export function Header() {
             {profile.firstName} {profile.lastName}
           </span>
         </Link>
+        <button onClick={handleLogout} className="ml-2 p-2 text-muted-foreground hover:text-destructive transition-colors" title="Logout">
+          <LogOut className="h-5 w-5" />
+        </button>
       </div>
     </header>
   );

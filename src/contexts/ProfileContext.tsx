@@ -45,6 +45,7 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   const fetchProfile = async (userId: string) => {
+    setLoading(true);
     try {
       const { data: userData, error } = await supabase
         .from('user')
@@ -115,6 +116,7 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
       if (session?.user) {
         // Only fetch if we don't have a profile or if the ID mismatch (though replacing profile is safer)
         if (profile.userId === undefined) { 
+             setLoading(true);
              fetchProfile(session.user.id);
         }
       } else {

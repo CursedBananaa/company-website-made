@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Issues - sha8lny - Sentry</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        sentry: {
+                            sidebar: '#FFFFFF',
+                            bg: '#F6F6F8',
+                            card: '#FFFFFF',
+                            border: '#E5E5E5',
+                            text: '#2B2B2B',
+                            muted: '#666666',
+                            hover: '#F0F0F0',
+                            accent: '#3571A5',
+                            error: '#E1567C',
+                            warning: '#F8B129',
+                            info: '#3571A5'
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', '-apple-system', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'Menlo', 'monospace']
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { background-color: #F6F6F8; color: #2B2B2B; }
+        .bar { width: 100%; border-radius: 2px; }
+        .bar-container { display: flex; align-items: flex-end; gap: 4px; height: 100px; padding: 10px 0; border-bottom: 1px solid #E5E5E5; margin-bottom: 20px;}
+    </style>
+</head>
+<body class="font-sans antialiased h-screen flex overflow-hidden selection:bg-sentry-accent selection:text-white">
+
+    <!-- Sidebar -->
+    <aside class="w-[220px] bg-sentry-sidebar border-r border-sentry-border flex flex-col shrink-0">
+        <div class="h-14 flex items-center px-4 border-b border-sentry-border">
+            <!-- Sentry Logo Mock -->
+            <svg class="w-6 h-6 text-black" viewBox="0 0 24 24" fill="currentColor"><path d="M11.378 1.488a1.328 1.328 0 0 1 1.244 0l8.777 5.067a1.328 1.328 0 0 1 .664 1.15v10.134a1.328 1.328 0 0 1-.664 1.15l-8.777 5.067a1.328 1.328 0 0 1-1.244 0L2.601 18.99A1.328 1.328 0 0 1 1.937 17.84V7.705a1.328 1.328 0 0 1 .664-1.15l8.777-5.067ZM6.166 10.15v3.7c0 .245.132.467.345.59l4.896 2.827c.213.123.477.123.69 0l4.896-2.827a.684.684 0 0 0 .345-.59v-3.7a.684.684 0 0 0-.345-.59L12.1 6.732a.684.684 0 0 0-.69 0L6.51 9.56a.684.684 0 0 0-.345.59Z"/></svg>
+            <span class="ml-2 font-bold text-lg tracking-tight text-black">Sentry</span>
+        </div>
+
+        <div class="flex-1 overflow-y-auto py-4">
+            <div class="px-3 mb-2 text-xs font-semibold text-sentry-muted uppercase tracking-wider">Organization</div>
+            <nav class="space-y-0.5 px-2 mb-6">
+                <a href="#" class="flex items-center px-3 py-2 text-sm rounded-md bg-[#F0F0F0] text-black font-medium">
+                    <svg class="w-4 h-4 mr-3 text-sentry-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                    Issues
+                </a>
+                <a href="#" class="flex items-center px-3 py-2 text-sm rounded-md text-sentry-text hover:bg-sentry-hover transition">
+                    <svg class="w-4 h-4 mr-3 text-sentry-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
+                    Performance
+                </a>
+                <a href="#" class="flex items-center px-3 py-2 text-sm rounded-md text-sentry-text hover:bg-sentry-hover transition">
+                    <svg class="w-4 h-4 mr-3 text-sentry-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z"></path></svg>
+                    Dashboards
+                </a>
+                <a href="#" class="flex items-center px-3 py-2 text-sm rounded-md text-sentry-text hover:bg-sentry-hover transition">
+                    <svg class="w-4 h-4 mr-3 text-sentry-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
+                    Releases
+                </a>
+            </nav>
+
+            <div class="px-3 mb-2 text-xs font-semibold text-sentry-muted uppercase tracking-wider">Settings</div>
+            <nav class="space-y-0.5 px-2">
+                <a href="#" class="flex items-center px-3 py-2 text-sm rounded-md text-sentry-text hover:bg-sentry-hover transition">
+                    <svg class="w-4 h-4 mr-3 text-sentry-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                    Project Settings
+                </a>
+            </nav>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="flex-1 flex flex-col min-w-0 bg-sentry-bg">
+        
+        <!-- Top Navigation -->
+        <header class="h-14 bg-sentry-sidebar border-b border-sentry-border flex items-center justify-between px-6 shrink-0">
+            <div class="flex items-center gap-4">
+                <!-- Project Selector -->
+                <button class="flex items-center gap-2 bg-sentry-sidebar border border-sentry-border rounded-md px-3 py-1.5 text-sm hover:bg-sentry-hover transition">
+                    <div class="w-4 h-4 rounded-full bg-gradient-to-r from-purple-500 to-blue-500"></div>
+                    <span class="font-medium text-black">sha8lny</span>
+                    <svg class="w-4 h-4 text-sentry-muted ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                </button>
+            </div>
+            
+            <div class="flex items-center gap-4">
+                <span class="text-xs text-sentry-muted">Environment: <span class="text-black font-medium ml-1">production</span></span>
+                <span class="text-xs text-sentry-muted">Date: <span class="text-black font-medium ml-1">Last 24 Hours</span></span>
+                <div class="w-8 h-8 rounded-full bg-gradient-to-tr from-green-400 to-blue-500 flex items-center justify-center text-xs font-bold text-white shadow-sm">A</div>
+            </div>
+        </header>
+
+        <!-- Content Area -->
+        <div class="flex-1 overflow-y-auto p-6">
+            
+            <div class="flex justify-between items-end mb-4">
+                <h1 class="text-2xl font-bold text-black">Issues</h1>
+                <div class="flex gap-2 text-sm">
+                    <button class="bg-sentry-sidebar border border-sentry-border rounded-md px-3 py-1.5 text-black hover:bg-sentry-hover transition">Unresolved</button>
+                    <button class="bg-[#3571A5] text-white font-semibold rounded-md px-3 py-1.5 hover:bg-[#28567d] transition">Resolve All</button>
+                </div>
+            </div>
+
+            <!-- Error Graph Mock -->
+            <div class="bg-sentry-card border border-sentry-border rounded-lg p-4 mb-6 shadow-sm">
+                <div class="flex justify-between items-center mb-2">
+                    <span class="text-sm font-semibold text-sentry-muted uppercase tracking-wider">Events in the last 24 hours</span>
+                    <span class="text-xs text-sentry-muted">Total: 42</span>
+                </div>
+                <div class="bar-container items-end flex gap-1 h-[80px]">
+                    <!-- Generate random looking bars -->
+                    <script>
+                        for(let i=0; i<48; i++) {
+                            const height = Math.random() > 0.7 ? Math.floor(Math.random() * 60 + 10) : Math.floor(Math.random() * 10 + 2);
+                            const isError = Math.random() > 0.8;
+                            document.write(`<div class="flex-1 rounded-t-sm" style="height: ${height}%; background-color: ${isError ? '#E1567C' : '#3571A5'}; opacity: 0.8"></div>`);
+                        }
+                    </script>
+                </div>
+            </div>
+
+            <!-- Issues Table -->
+            <div class="bg-sentry-card border border-sentry-border rounded-lg overflow-hidden shadow-sm">
+                <div class="grid grid-cols-[auto_1fr_100px_100px] gap-4 p-4 border-b border-sentry-border text-xs font-semibold text-sentry-muted uppercase tracking-wider bg-[#F8F9FA]">
+                    <div class="w-6"></div>
+                    <div>Issue</div>
+                    <div class="text-right">Events</div>
+                    <div class="text-right">Users</div>
+                </div>
+
+                <!-- Issue 1 -->
+                <div class="grid grid-cols-[auto_1fr_100px_100px] gap-4 p-4 border-b border-sentry-border hover:bg-[#F8F9FA] transition cursor-pointer">
+                    <div class="w-6 flex justify-center">
+                        <input type="checkbox" class="mt-1 rounded border-sentry-border">
+                    </div>
+                    <div>
+                        <div class="flex items-center gap-2 mb-1">
+                            <span class="text-[10px] font-bold px-1.5 py-0.5 rounded bg-[#FDE8EF] text-[#E1567C] uppercase border border-[#FAD1DF]">Error</span>
+                            <span class="font-bold text-[#E1567C]">TypeError</span>
+                            <span class="text-xs text-sentry-muted">in Messages.tsx</span>
+                        </div>
+                        <h3 class="text-sm font-semibold mb-1 text-[#2B2B2B]">Cannot read properties of undefined (reading 'avatarUrl')</h3>
+                        <p class="text-xs text-sentry-muted font-mono truncate max-w-2xl">src/pages/Messages.tsx in Messages at line 410:22</p>
+                    </div>
+                    <div class="text-right flex flex-col justify-center">
+                        <span class="font-mono font-medium text-black">18</span>
+                        <div class="flex gap-0.5 h-3 w-16 ml-auto mt-1">
+                            <div class="w-1/6 bg-sentry-error h-full opacity-40"></div>
+                            <div class="w-1/6 bg-sentry-error h-full opacity-80"></div>
+                            <div class="w-1/6 bg-sentry-error h-full opacity-20"></div>
+                            <div class="w-1/6 bg-sentry-error h-full opacity-100"></div>
+                            <div class="w-1/6 bg-sentry-error h-full opacity-60"></div>
+                        </div>
+                    </div>
+                    <div class="text-right flex flex-col justify-center">
+                        <span class="font-mono font-medium text-sentry-muted">4</span>
+                    </div>
+                </div>
+
+                <!-- Issue 2 -->
+                <div class="grid grid-cols-[auto_1fr_100px_100px] gap-4 p-4 border-b border-sentry-border hover:bg-[#F8F9FA] transition cursor-pointer">
+                    <div class="w-6 flex justify-center">
+                        <input type="checkbox" class="mt-1 rounded border-sentry-border">
+                    </div>
+                    <div>
+                        <div class="flex items-center gap-2 mb-1">
+                            <span class="text-[10px] font-bold px-1.5 py-0.5 rounded bg-[#FDE8EF] text-[#E1567C] uppercase border border-[#FAD1DF]">Error</span>
+                            <span class="font-bold text-[#E1567C]">PostgrestError</span>
+                            <span class="text-xs text-sentry-muted">in api/supabase</span>
+                        </div>
+                        <h3 class="text-sm font-semibold mb-1 text-[#2B2B2B]">Failed to fetch data from 'chats' relation</h3>
+                        <p class="text-xs text-sentry-muted font-mono truncate max-w-2xl">@supabase/supabase-js/dist/module/lib/SupabaseQueryBuilder.js</p>
+                    </div>
+                    <div class="text-right flex flex-col justify-center">
+                        <span class="font-mono font-medium text-black">12</span>
+                        <div class="flex gap-0.5 h-3 w-16 ml-auto mt-1">
+                            <div class="w-1/6 bg-sentry-error h-full opacity-20"></div>
+                            <div class="w-1/6 bg-sentry-error h-full opacity-40"></div>
+                            <div class="w-1/6 bg-sentry-error h-full opacity-100"></div>
+                            <div class="w-1/6 bg-sentry-error h-full opacity-20"></div>
+                            <div class="w-1/6 bg-sentry-error h-full opacity-0"></div>
+                        </div>
+                    </div>
+                    <div class="text-right flex flex-col justify-center">
+                        <span class="font-mono font-medium text-sentry-muted">1</span>
+                    </div>
+                </div>
+
+                <!-- Issue 3 -->
+                <div class="grid grid-cols-[auto_1fr_100px_100px] gap-4 p-4 hover:bg-[#F8F9FA] transition cursor-pointer">
+                    <div class="w-6 flex justify-center">
+                        <input type="checkbox" class="mt-1 rounded border-sentry-border">
+                    </div>
+                    <div>
+                        <div class="flex items-center gap-2 mb-1">
+                            <span class="text-[10px] font-bold px-1.5 py-0.5 rounded bg-[#FFF8E6] text-[#D48B00] uppercase border border-[#FDEBCC]">Warning</span>
+                            <span class="font-bold text-[#D48B00]">UnhandledRejection</span>
+                            <span class="text-xs text-sentry-muted">in Auth.tsx</span>
+                        </div>
+                        <h3 class="text-sm font-semibold mb-1 text-[#2B2B2B]">Non-Error promise rejection captured with value: null</h3>
+                        <p class="text-xs text-sentry-muted font-mono truncate max-w-2xl">src/pages/Auth.tsx in handleLogin at line 55:12</p>
+                    </div>
+                    <div class="text-right flex flex-col justify-center">
+                        <span class="font-mono font-medium text-black">12</span>
+                        <div class="flex gap-0.5 h-3 w-16 ml-auto mt-1">
+                            <div class="w-1/6 bg-[#D48B00] h-full opacity-0"></div>
+                            <div class="w-1/6 bg-[#D48B00] h-full opacity-0"></div>
+                            <div class="w-1/6 bg-[#D48B00] h-full opacity-0"></div>
+                            <div class="w-1/6 bg-[#D48B00] h-full opacity-40"></div>
+                            <div class="w-1/6 bg-[#D48B00] h-full opacity-100"></div>
+                        </div>
+                    </div>
+                    <div class="text-right flex flex-col justify-center">
+                        <span class="font-mono font-medium text-sentry-muted">8</span>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </main>
+
+</body>
+</html>
