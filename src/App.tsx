@@ -26,7 +26,6 @@ import AdminIndex from "./pages/admin/AdminIndex";
 import AdminTablePage from "./pages/admin/AdminTablePage";
 import AdminInboxPage from "./pages/admin/AdminInboxPage";
 import AdminOpportunitiesPage from "./pages/admin/AdminOpportunitiesPage";
-import AdminAddOpportunityPage from "./pages/admin/AdminAddOpportunityPage";
 import AdminViewApplicantPage from "./pages/admin/AdminViewApplicantPage";
 import AdminAnnouncementPage from "./pages/admin/AdminAnnouncementPage";
 import AdminAddAnnouncementPage from "./pages/admin/AdminAddAnnouncementPage";
@@ -64,8 +63,6 @@ const App = () => (
               <Route path="/admin/table" element={<RequireAdminAuth><AdminTablePage /></RequireAdminAuth>} />
               <Route path="/admin/inbox" element={<RequireAdminAuth><AdminInboxPage /></RequireAdminAuth>} />
               <Route path="/admin/opportunities" element={<RequireAdminAuth><AdminOpportunitiesPage /></RequireAdminAuth>} />
-              <Route path="/admin/opportunities/add" element={<RequireAdminAuth><AdminAddOpportunityPage /></RequireAdminAuth>} />
-              <Route path="/admin/opportunities/edit/:id" element={<RequireAdminAuth><AdminAddOpportunityPage /></RequireAdminAuth>} />
               <Route path="/admin/opportunities/:id/applicants" element={<RequireAdminAuth><AdminViewApplicantPage /></RequireAdminAuth>} />
               <Route path="/admin/announcement" element={<RequireAdminAuth><AdminAnnouncementPage /></RequireAdminAuth>} />
               <Route path="/admin/announcement/add" element={<RequireAdminAuth><AdminAddAnnouncementPage /></RequireAdminAuth>} />

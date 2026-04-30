@@ -33,7 +33,7 @@ const locationTypes = [
 
 export function AddProjectDialog({ open, onOpenChange, projectToEdit }: AddProjectDialogProps) {
   const { profile } = useProfile();
-  
+
   const [title, setTitle] = useState("");
   const [type, setType] = useState("");
   const [location, setLocation] = useState("");
@@ -53,19 +53,19 @@ export function AddProjectDialog({ open, onOpenChange, projectToEdit }: AddProje
         // Edit mode: Populate form
         setTitle(projectToEdit.title || "");
         setDescription(projectToEdit.description || "");
-        
+
         // Parse Type and Location
         const fullType = projectToEdit.type || "";
         const parts = fullType.split(" ");
         // Heuristic: Check if the last part is a location type
         const lastPart = parts[parts.length - 1];
         if (locationTypes.includes(lastPart)) {
-            setLocation(lastPart);
-            setType(parts.slice(0, -1).join(" "));
+          setLocation(lastPart);
+          setType(parts.slice(0, -1).join(" "));
         } else {
-            // Default fallback if parsing fails or old data
-            setType(fullType);
-            setLocation("");
+          // Default fallback if parsing fails or old data
+          setType(fullType);
+          setLocation("");
         }
 
         // Parse Skills
@@ -138,7 +138,7 @@ export function AddProjectDialog({ open, onOpenChange, projectToEdit }: AddProje
           // @ts-ignore
           .update(projectData)
           .eq('id', projectToEdit.id);
-        
+
         if (error) throw error;
       } else {
         // Insert
@@ -146,14 +146,14 @@ export function AddProjectDialog({ open, onOpenChange, projectToEdit }: AddProje
           .from('opportunity')
           // @ts-ignore
           .insert(projectData);
-          
+
         if (error) throw error;
       }
 
       toast.success(projectToEdit ? "Project updated successfully!" : "Project added successfully!");
       queryClient.invalidateQueries({ queryKey: ['projects'] });
       onOpenChange(false);
-      
+
     } catch (error: any) {
       console.error(error);
       toast.error(error.message || "Failed to save project");
@@ -170,7 +170,7 @@ export function AddProjectDialog({ open, onOpenChange, projectToEdit }: AddProje
             {projectToEdit ? "Edit Project" : "Add Project"}
           </DialogTitle>
         </DialogHeader>
-        
+
         <div className="space-y-6 py-4">
           <div className="grid grid-cols-2 gap-4">
             {/* Project Title */}
@@ -239,8 +239,8 @@ export function AddProjectDialog({ open, onOpenChange, projectToEdit }: AddProje
                   className="px-2 py-1 flex items-center gap-1"
                 >
                   {skill}
-                  <X 
-                    className="h-3 w-3 cursor-pointer hover:text-destructive" 
+                  <X
+                    className="h-3 w-3 cursor-pointer hover:text-destructive"
                     onClick={() => handleSkillRemove(skill)}
                   />
                 </Badge>
@@ -254,7 +254,7 @@ export function AddProjectDialog({ open, onOpenChange, projectToEdit }: AddProje
                 placeholder={selectedSkills.length === 0 ? "Type a skill..." : ""}
               />
             </div>
-            
+
             {/* Suggested Skills */}
             <div className="space-y-2">
               <Label className="text-xs text-muted-foreground">Suggested skills:</Label>
@@ -287,7 +287,7 @@ export function AddProjectDialog({ open, onOpenChange, projectToEdit }: AddProje
                 placeholder="0.00"
               />
             </div>
-            
+
             <div className="space-y-2">
               <Label htmlFor="duration" className="text-sm font-medium">Duration (Days)</Label>
               <Input
@@ -316,7 +316,7 @@ export function AddProjectDialog({ open, onOpenChange, projectToEdit }: AddProje
 
           {/* Submit Button */}
           <div className="flex justify-end pt-4">
-            <Button 
+            <Button
               type="submit"
               onClick={handleSubmit}
               disabled={isLoading}

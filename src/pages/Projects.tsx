@@ -12,6 +12,63 @@ import { AddProjectDialog } from "@/components/AddProjectDialog";
 import { useProfile } from "@/contexts/ProfileContext";
 import { toast } from "sonner";
 
+const THEMES = [
+  {
+    cardGlow: 'hover:shadow-[0_0_20px_rgba(59,130,246,0.3)] hover:border-blue-500/50',
+    buttonBg: 'bg-blue-500',
+    buttonHover: 'hover:bg-blue-600',
+    buttonGlow: 'shadow-[0_0_15px_rgba(59,130,246,0.5)]',
+    iconColor: 'text-blue-500',
+    iconBg: 'bg-blue-500/10',
+    titleColor: 'group-hover:text-blue-500 group-hover:drop-shadow-[0_0_8px_rgba(59,130,246,0.5)]'
+  },
+  {
+    cardGlow: 'hover:shadow-[0_0_20px_rgba(16,185,129,0.3)] hover:border-emerald-500/50',
+    buttonBg: 'bg-emerald-500',
+    buttonHover: 'hover:bg-emerald-600',
+    buttonGlow: 'shadow-[0_0_15px_rgba(16,185,129,0.5)]',
+    iconColor: 'text-emerald-500',
+    iconBg: 'bg-emerald-500/10',
+    titleColor: 'group-hover:text-emerald-500 group-hover:drop-shadow-[0_0_8px_rgba(16,185,129,0.5)]'
+  },
+  {
+    cardGlow: 'hover:shadow-[0_0_20px_rgba(139,92,246,0.3)] hover:border-violet-500/50',
+    buttonBg: 'bg-violet-500',
+    buttonHover: 'hover:bg-violet-600',
+    buttonGlow: 'shadow-[0_0_15px_rgba(139,92,246,0.5)]',
+    iconColor: 'text-violet-500',
+    iconBg: 'bg-violet-500/10',
+    titleColor: 'group-hover:text-violet-500 group-hover:drop-shadow-[0_0_8px_rgba(139,92,246,0.5)]'
+  },
+  {
+    cardGlow: 'hover:shadow-[0_0_20px_rgba(244,63,94,0.3)] hover:border-rose-500/50',
+    buttonBg: 'bg-rose-500',
+    buttonHover: 'hover:bg-rose-600',
+    buttonGlow: 'shadow-[0_0_15px_rgba(244,63,94,0.5)]',
+    iconColor: 'text-rose-500',
+    iconBg: 'bg-rose-500/10',
+    titleColor: 'group-hover:text-rose-500 group-hover:drop-shadow-[0_0_8px_rgba(244,63,94,0.5)]'
+  },
+  {
+    cardGlow: 'hover:shadow-[0_0_20px_rgba(245,158,11,0.3)] hover:border-amber-500/50',
+    buttonBg: 'bg-amber-500',
+    buttonHover: 'hover:bg-amber-600',
+    buttonGlow: 'shadow-[0_0_15px_rgba(245,158,11,0.5)]',
+    iconColor: 'text-amber-500',
+    iconBg: 'bg-amber-500/10',
+    titleColor: 'group-hover:text-amber-500 group-hover:drop-shadow-[0_0_8px_rgba(245,158,11,0.5)]'
+  },
+  {
+    cardGlow: 'hover:shadow-[0_0_20px_rgba(6,182,212,0.3)] hover:border-cyan-500/50',
+    buttonBg: 'bg-cyan-500',
+    buttonHover: 'hover:bg-cyan-600',
+    buttonGlow: 'shadow-[0_0_15px_rgba(6,182,212,0.5)]',
+    iconColor: 'text-cyan-500',
+    iconBg: 'bg-cyan-500/10',
+    titleColor: 'group-hover:text-cyan-500 group-hover:drop-shadow-[0_0_8px_rgba(6,182,212,0.5)]'
+  }
+];
+
 export default function Projects() {
   const navigate = useNavigate();
   const [isAddProjectOpen, setIsAddProjectOpen] = useState(false);
@@ -106,11 +163,13 @@ export default function Projects() {
             <p>Loading projects...</p>
           ) : projects?.length === 0 ? (
              <p className="text-muted-foreground">No projects found for your company.</p>
-          ) : projects?.map((project: any) => (
-            <Card key={project.id} className="relative">
+          ) : projects?.map((project: any, index: number) => {
+            const theme = THEMES[index % THEMES.length];
+            return (
+            <Card key={project.id} className={`relative group transition-all duration-300 ${theme.cardGlow}`}>
               <CardContent className="p-4 space-y-3">
                 <div className="flex justify-between items-start">
-                  <h3 className="font-semibold">{project.title}</h3>
+                  <h3 className={`font-semibold transition-all duration-300 ${theme.titleColor}`}>{project.title}</h3>
                 </div>
 
                 <div className="flex items-center gap-2">
@@ -146,7 +205,7 @@ export default function Projects() {
                 <div className="flex gap-2">
                   <Button 
                     size="sm" 
-                    className="bg-primary hover:bg-primary/90"
+                    className={`text-white border-none transition-all duration-300 ${theme.buttonBg} ${theme.buttonHover} ${theme.buttonGlow}`}
                     onClick={() => handleEdit(project)}
                   >
                     <Edit className="h-3 w-3 mr-1" />
@@ -164,7 +223,7 @@ export default function Projects() {
                 </div>
               </CardContent>
             </Card>
-          ))}
+          )})}
         </div>
       </div>
     </DashboardLayout>
