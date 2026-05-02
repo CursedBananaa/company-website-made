@@ -2,7 +2,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { FileText, User, Check, X, Download } from "lucide-react";
+import { FileText, User, Check, X, Download, ExternalLink } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useState } from "react";
@@ -30,7 +30,7 @@ export function ApplicationDetailsDialog({
   const user = student?.user;
   const opportunity = application.opportunity;
 
-  const handleStatusUpdate = async (newStatus: 'accepted' | 'rejected') => {
+  const handleStatusUpdate = async (newStatus: 'accepted' | 'rejected' | 'completed' | 'failed') => {
     try {
       setIsUpdating(true);
       const { error } = await supabase
@@ -52,6 +52,18 @@ export function ApplicationDetailsDialog({
     }
   };
 
+  const isProposalUrl = application.proposal && 
+    (application.proposal.startsWith('http://') || 
+     application.proposal.startsWith('https://') || 
+     application.proposal.includes('www.'));
+
+  const getProposalUrl = (url: string) => {
+    if (url.startsWith('http://') || url.startsWith('https://')) {
+      return url;
+    }
+    return `https://${url}`;
+  };
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[600px] max-h-[90vh] flex flex-col">
@@ -59,8 +71,8 @@ export function ApplicationDetailsDialog({
           <DialogTitle className="flex items-center justify-between gap-4">
             <span className="truncate">Application for {opportunity?.title}</span>
             <Badge variant={
-              application.status === 'accepted' ? 'default' : 
-              application.status === 'rejected' ? 'destructive' : 'secondary'
+              application.status === 'accepted' || application.status === 'completed' ? 'default' : 
+              application.status === 'rejected' || application.status === 'failed' ? 'destructive' : 'secondary'
             }>
               {application.status}
             </Badge>
@@ -93,9 +105,26 @@ export function ApplicationDetailsDialog({
                 <FileText className="h-4 w-4" />
                 Proposal
               </h4>
-              <div className="p-4 rounded-lg border bg-card text-sm leading-relaxed whitespace-pre-wrap">
-                {application.proposal || "No proposal submitted."}
-              </div>
+              {application.proposal ? (
+                isProposalUrl ? (
+                  <Button 
+                    variant="outline" 
+                    className="w-full justify-start py-3 px-4" 
+                    onClick={() => window.open(getProposalUrl(application.proposal), '_blank', 'noopener,noreferrer')}
+                  >
+                    <ExternalLink className="h-4 w-4 mr-2 shrink-0" />
+                    <span>View Proposal</span>
+                  </Button>
+                ) : (
+                  <div className="p-4 rounded-lg border bg-card text-sm leading-relaxed whitespace-pre-wrap">
+                    {application.proposal}
+                  </div>
+                )
+              ) : (
+                <div className="p-4 rounded-lg border bg-card text-sm leading-relaxed text-muted-foreground">
+                  No proposal submitted.
+                </div>
+              )}
             </div>
 
             {/* CV / Documents */}
@@ -138,32 +167,32 @@ export function ApplicationDetailsDialog({
         </ScrollArea>
 
         <DialogFooter className="gap-2 sm:gap-0">
-          <div className="flex w-full justify-end gap-2">
-            {application.status === 'pending' && (
-              <>
-                <Button 
-                  variant="outline" 
-                  className="border-destructive text-destructive hover:bg-destructive hover:text-destructive-foreground"
-                  onClick={() => handleStatusUpdate('rejected')}
-                  disabled={isUpdating}
-                >
-                  <X className="h-4 w-4 mr-2" />
-                  Reject
-                </Button>
-                <Button 
-                  onClick={() => handleStatusUpdate('accepted')}
-                  disabled={isUpdating}
-                >
-                  <Check className="h-4 w-4 mr-2" />
-                  Accept
-                </Button>
-              </>
-            )}
-             {application.status !== 'pending' && (
-                <Button variant="secondary" onClick={() => onOpenChange(false)}>
-                  Close
-                </Button>
-             )}
+          <div className="flex w-full justify-between items-center gap-2">
+            <div className="flex gap-2">
+              {(application.status === 'pending' || application.status === 'accepted') && (
+                <>
+                  <Button 
+                    variant="outline" 
+                    className="border-destructive text-destructive hover:bg-destructive hover:text-destructive-foreground"
+                    onClick={() => handleStatusUpdate('failed')}
+                    disabled={isUpdating}
+                  >
+                    <X className="h-4 w-4 mr-2" />
+                    Fail
+                  </Button>
+                  <Button 
+                    onClick={() => handleStatusUpdate('completed')}
+                    disabled={isUpdating}
+                  >
+                    <Check className="h-4 w-4 mr-2" />
+                    Complete
+                  </Button>
+                </>
+              )}
+            </div>
+            <Button variant="secondary" onClick={() => onOpenChange(false)}>
+              Close
+            </Button>
           </div>
         </DialogFooter>
       </DialogContent>
