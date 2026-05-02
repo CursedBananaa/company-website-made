@@ -83,6 +83,19 @@ const AdminOpportunitiesPage = () => {
   const [isAddProjectOpen, setIsAddProjectOpen] = useState(false);
   const [editingProject, setEditingProject] = useState<any>(null);
 
+  const handleDelete = async (id: string) => {
+    if (window.confirm("Are you sure you want to delete this opportunity?")) {
+      try {
+        const { error } = await supabase.from("opportunity").delete().eq("id", id);
+        if (error) throw error;
+        setOpportunities(prev => prev.filter(opp => opp.id !== id));
+      } catch (error) {
+        console.error("Error deleting opportunity:", error);
+        alert("Failed to delete opportunity");
+      }
+    }
+  };
+
   const fetchOpportunities = async () => {
     try {
       setIsLoading(true);
@@ -146,7 +159,24 @@ const AdminOpportunitiesPage = () => {
   return (
     <AdminDashboardLayout>
       <div className="space-y-6">
-        <h1 className="text-2xl font-bold text-foreground">Opportunities</h1>
+        <div className="flex items-center justify-between">
+          <h1 className="text-2xl font-bold text-foreground">Opportunities</h1>
+          <div className="flex items-center gap-3">
+            <Button
+              onClick={() => navigate("/admin/opportunities/all/applicants")}
+              variant="outline"
+            >
+              View Applicants
+            </Button>
+            <Button
+              onClick={() => setIsAddProjectOpen(true)}
+              className="gap-2"
+            >
+              <Plus className="h-4 w-4" />
+              Add Project
+            </Button>
+          </div>
+        </div>
 
         <AddProjectDialog 
           open={isAddProjectOpen} 
@@ -209,10 +239,11 @@ const AdminOpportunitiesPage = () => {
                   <Button
                     size="sm"
                     variant="outline"
-                    className="border-primary text-primary hover:bg-primary hover:text-primary-foreground"
-                    onClick={() => navigate(`/admin/opportunities/${opp.id}/applicants`)}
+                    className="border-destructive text-destructive hover:bg-destructive hover:text-destructive-foreground"
+                    onClick={() => handleDelete(opp.id)}
                   >
-                    View Applicant
+                    <Trash2 className="h-3 w-3 mr-1" />
+                    Delete
                   </Button>
                 </div>
               </CardContent>
@@ -220,12 +251,6 @@ const AdminOpportunitiesPage = () => {
           )})}
         </div>
 
-        <button
-          onClick={() => setIsAddProjectOpen(true)}
-          className="fixed bottom-6 right-6 h-14 w-14 rounded-full bg-card border border-border shadow-lg flex items-center justify-center hover:bg-muted transition-colors cursor-pointer"
-        >
-          <Plus className="h-6 w-6 text-foreground" />
-        </button>
       </div>
     </AdminDashboardLayout>
   );
