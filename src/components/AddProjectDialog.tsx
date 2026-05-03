@@ -112,7 +112,7 @@ export function AddProjectDialog({ open, onOpenChange, projectToEdit }: AddProje
 
 
   const handleSubmit = async () => {
-    if (!profile.companyId) {
+    if (!profile.companyId && profile.role !== 'admin') {
       toast.error("Company profile not found. Please complete your profile.");
       return;
     }
@@ -127,7 +127,7 @@ export function AddProjectDialog({ open, onOpenChange, projectToEdit }: AddProje
         amount_of_money: parseFloat(budget) || 0,
         deadline: deadline ? new Date(deadline).toISOString() : null,
         duration: parseFloat(duration) || 0,
-        company_id: profile.companyId,
+        company_id: profile.companyId || null,
         is_paid: (parseFloat(budget) || 0) > 0,
       };
 

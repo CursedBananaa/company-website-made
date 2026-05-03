@@ -118,7 +118,9 @@ const AdminOpportunitiesPage = () => {
 
           // Get company name
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          const companyName = (opp.company_profile as any)?.user?.full_name || "Unknown Company";
+          const companyName = opp.company_id 
+            ? ((opp.company_profile as any)?.user?.full_name || "Unknown Company")
+            : "Admin";
 
           return {
             id: opp.id.toString(),

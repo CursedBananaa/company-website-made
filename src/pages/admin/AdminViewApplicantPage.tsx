@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useParams } from "react-router-dom";
 import { AdminDashboardLayout } from "@/components/admin/DashboardLayout";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -11,6 +12,7 @@ interface Applicant {
 }
 
 const AdminViewApplicantPage = () => {
+  const { id } = useParams<{ id: string }>();
   const [applicants, setApplicants] = useState<Applicant[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -18,11 +20,17 @@ const AdminViewApplicantPage = () => {
     const fetchApplicants = async () => {
       try {
         setLoading(true);
-        // Fetch all applications
-        const { data: apps, error: appsError } = await supabase
+        // Fetch applications, optionally filtered by opportunity
+        let query = supabase
           .from("application")
           .select("id, created_at, student_id")
           .order("created_at", { ascending: false });
+
+        if (id && id !== "all") {
+          query = query.eq("opportunity_id", parseInt(id, 10));
+        }
+
+        const { data: apps, error: appsError } = await query;
 
         if (appsError) throw appsError;
         if (!apps || apps.length === 0) {
@@ -38,32 +46,31 @@ const AdminViewApplicantPage = () => {
         if (studentIds.length > 0) {
           const { data } = await supabase
             .from("student_profile")
-            .select("id, u_id, graduation_year, major")
-            .in("id", studentIds);
+            .select("id, user_id, grad_year, major")
+            .in("user_id", studentIds);
           profilesData = data || [];
         }
 
         // Fetch related users
-        const userIds = [...new Set(profilesData.map(p => p.u_id).filter(Boolean))];
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         let usersData: any[] = [];
-        if (userIds.length > 0) {
+        if (studentIds.length > 0) {
           const { data } = await supabase
             .from("user")
             .select("id, full_name")
-            .in("id", userIds);
+            .in("id", studentIds);
           usersData = data || [];
         }
 
         // Combine the data
         const formattedApplicants: Applicant[] = apps.map(app => {
-          const profile = profilesData.find(p => p.id === app.student_id);
-          const user = profile ? usersData.find(u => u.id === profile.u_id) : null;
+          const profile = profilesData.find(p => p.user_id === app.student_id);
+          const user = usersData.find(u => u.id === app.student_id);
           
           return {
             id: app.id.toString(),
             name: user?.full_name || "Unknown Applicant",
-            stdYear: profile?.graduation_year?.toString() || "-",
+            stdYear: profile?.grad_year?.toString() || "-",
             date: new Date(app.created_at).toLocaleDateString(),
             department: profile?.major || "-",
           };
