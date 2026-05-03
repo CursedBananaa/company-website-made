@@ -23,7 +23,7 @@ interface SidebarProps {
 
 const navigation = [
   { name: "Overview", href: "/admin", icon: LayoutDashboard },
-  { name: "Table", href: "/admin/table", icon: Table },
+  { name: "Student Data", href: "/admin/table", icon: Table },
   { name: "Inbox", href: "/admin/inbox", icon: MessageSquare },
 ];
 
@@ -42,7 +42,7 @@ export function AdminDashboardLayout({ children }: SidebarProps) {
   const [notificationsOpen, setNotificationsOpen] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
-  const { signOut } = useProfile();
+  const { signOut, profile } = useProfile();
 
   const isActive = (href: string) => {
     if (href === "/admin") return location.pathname === "/admin";
@@ -211,12 +211,24 @@ export function AdminDashboardLayout({ children }: SidebarProps) {
               hasNew={true}
             />
             <Link to="/admin/profile" className="flex items-center gap-3 hover:opacity-80 transition-opacity cursor-pointer">
-              <div className="h-9 w-9 rounded-full bg-primary/10 flex items-center justify-center">
-                <span className="text-sm font-medium text-primary">AD</span>
-              </div>
+              {profile.avatarUrl && profile.avatarUrl !== "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face" ? (
+                <div className="h-9 w-9 rounded-full overflow-hidden">
+                  <img src={profile.avatarUrl} alt="Avatar" className="h-full w-full object-cover" />
+                </div>
+              ) : (
+                <div className="h-9 w-9 rounded-full bg-primary/10 flex items-center justify-center">
+                  <span className="text-sm font-medium text-primary">
+                    {(profile.firstName?.[0] || "A") + (profile.lastName?.[0] || "D")}
+                  </span>
+                </div>
+              )}
               <div className="hidden md:block">
-                <p className="text-sm font-medium">Admin</p>
-                <p className="text-xs text-muted-foreground">Administrator</p>
+                <p className="text-sm font-medium">
+                  {profile.firstName || "Admin"} {profile.lastName || ""}
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  {profile.role || "Administrator"}
+                </p>
               </div>
             </Link>
             <button onClick={handleLogout} className="ml-2 p-2 text-muted-foreground hover:text-destructive transition-colors" title="Logout">

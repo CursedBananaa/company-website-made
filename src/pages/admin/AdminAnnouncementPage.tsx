@@ -7,9 +7,10 @@ import { toast } from "sonner";
 
 interface Announcement {
   id: string;
-  name: string;
+  title: string;
   description: string;
   link: string;
+  image_url?: string;
 }
 
 const AdminAnnouncementPage = () => {
@@ -67,15 +68,24 @@ const AdminAnnouncementPage = () => {
                 key={announcement.id}
                 className="bg-card border border-border rounded-lg p-5 flex items-start justify-between gap-4"
               >
+                {announcement.image_url && (
+                  <div className="shrink-0">
+                    <img 
+                      src={announcement.image_url} 
+                      alt={announcement.title} 
+                      className="w-24 h-24 object-cover rounded-md border border-border"
+                    />
+                  </div>
+                )}
                 <div className="flex-1 min-w-0">
-                  <h3 className="text-base font-semibold text-foreground mb-1">
-                    {announcement.name}
+                  <h3 className="text-base font-semibold text-foreground mb-1 flex items-center gap-2">
+                    {announcement.title}
                   </h3>
                   <p className="text-sm text-muted-foreground leading-relaxed mb-2">
                     <span className="font-medium text-foreground">Description:</span>{" "}
                     {announcement.description}
                   </p>
-                  <p className="text-sm text-muted-foreground">
+                  <p className="text-sm text-muted-foreground mb-1">
                     <span className="font-medium text-foreground">Link:</span>{" "}
                     <a href={announcement.link} target="_blank" rel="noreferrer" className="text-primary hover:underline">{announcement.link}</a>
                   </p>

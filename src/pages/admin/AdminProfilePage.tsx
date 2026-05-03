@@ -1,12 +1,14 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { AdminDashboardLayout } from "@/components/admin/DashboardLayout";
 import { Mail, Phone, MapPin, Briefcase, Camera, Save } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 import { useProfile } from "@/contexts/ProfileContext";
+import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
 const AdminProfilePage = () => {
   const { profile, updateProfile, loading } = useProfile();
+  const fileInputRef = useRef<HTMLInputElement>(null);
   
   const [profileData, setProfileData] = useState({
     firstName: "",
@@ -57,6 +59,44 @@ const AdminProfilePage = () => {
     }
   };
 
+  const handleAvatarClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error("Image size should be less than 5MB");
+      return;
+    }
+
+    try {
+      toast.info("Uploading image...");
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${profile.userId || Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`;
+      
+      const { error: uploadError } = await supabase.storage
+        .from('profile_pictures')
+        .upload(fileName, file);
+
+      if (uploadError) {
+        throw uploadError;
+      }
+
+      const { data } = supabase.storage
+        .from('profile_pictures')
+        .getPublicUrl(fileName);
+
+      await updateProfile({ avatarUrl: data.publicUrl });
+      toast.success("Profile image updated!");
+    } catch (error: any) {
+      toast.error(error.message || "Error uploading image");
+      console.error("Upload error:", error);
+    }
+  };
+
   return (
     <AdminDashboardLayout>
       <div className="space-y-2 mb-6">
@@ -72,7 +112,17 @@ const AdminProfilePage = () => {
             <div className="rounded-xl border border-border bg-card p-6">
               <div className="flex flex-col items-center">
                 <div className="relative mb-4">
-                  <div className="h-24 w-24 rounded-full bg-primary/10 flex items-center justify-center overflow-hidden">
+                  <input
+                    type="file"
+                    ref={fileInputRef}
+                    onChange={handleFileChange}
+                    accept="image/*"
+                    className="hidden"
+                  />
+                  <div 
+                    className="h-24 w-24 rounded-full bg-primary/10 flex items-center justify-center overflow-hidden cursor-pointer"
+                    onClick={handleAvatarClick}
+                  >
                     {profile.avatarUrl && profile.avatarUrl !== "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face" ? (
                       <img src={profile.avatarUrl} alt="Avatar" className="h-full w-full object-cover" />
                     ) : (
@@ -81,7 +131,10 @@ const AdminProfilePage = () => {
                       </span>
                     )}
                   </div>
-                  <button className="absolute bottom-0 right-0 h-8 w-8 rounded-full bg-primary flex items-center justify-center hover:bg-primary/90 transition-colors">
+                  <button 
+                    onClick={handleAvatarClick}
+                    className="absolute bottom-0 right-0 h-8 w-8 rounded-full bg-primary flex items-center justify-center hover:bg-primary/90 transition-colors"
+                  >
                     <Camera className="h-4 w-4 text-primary-foreground" />
                   </button>
                 </div>

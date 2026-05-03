@@ -13,6 +13,7 @@ interface ApplicationDetailsDialogProps {
   application: any;
   onStatusUpdate: () => void; // Callback to refresh the list
   onViewProfile: (student: any) => void; // Callback to open student profile
+  readOnly?: boolean;
 }
 
 export function ApplicationDetailsDialog({ 
@@ -20,7 +21,8 @@ export function ApplicationDetailsDialog({
   onOpenChange, 
   application, 
   onStatusUpdate,
-  onViewProfile 
+  onViewProfile,
+  readOnly 
 }: ApplicationDetailsDialogProps) {
   const [isUpdating, setIsUpdating] = useState(false);
 
@@ -169,7 +171,7 @@ export function ApplicationDetailsDialog({
         <DialogFooter className="gap-2 sm:gap-0">
           <div className="flex w-full justify-between items-center gap-2">
             <div className="flex gap-2">
-              {(application.status === 'pending' || application.status === 'accepted') && (
+              {!readOnly && (application.status === 'pending' || application.status === 'accepted') && (
                 <>
                   <Button 
                     variant="outline" 
@@ -178,14 +180,14 @@ export function ApplicationDetailsDialog({
                     disabled={isUpdating}
                   >
                     <X className="h-4 w-4 mr-2" />
-                    Fail
+                    Failed
                   </Button>
                   <Button 
                     onClick={() => handleStatusUpdate('completed')}
                     disabled={isUpdating}
                   >
                     <Check className="h-4 w-4 mr-2" />
-                    Complete
+                    Completed
                   </Button>
                 </>
               )}

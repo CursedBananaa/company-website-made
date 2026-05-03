@@ -9,6 +9,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Camera, Mail, Phone, MapPin, Briefcase, Save } from "lucide-react";
 import { toast } from "sonner";
 import { useProfile } from "@/contexts/ProfileContext";
+import { supabase } from "@/integrations/supabase/client";
 
 export default function Profile() {
   const { profile, updateProfile } = useProfile();
@@ -22,19 +23,37 @@ export default function Profile() {
     fileInputRef.current?.click();
   };
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file) {
-      if (file.size > 5 * 1024 * 1024) {
-        toast.error("Image size should be less than 5MB");
-        return;
+    if (!file) return;
+    
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error("Image size should be less than 5MB");
+      return;
+    }
+
+    try {
+      toast.info("Uploading image...");
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${profile.userId || Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`;
+      
+      const { error: uploadError } = await supabase.storage
+        .from('profile_pictures')
+        .upload(fileName, file);
+
+      if (uploadError) {
+        throw uploadError;
       }
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        updateProfile({ avatarUrl: event.target?.result as string });
-        toast.success("Profile image updated!");
-      };
-      reader.readAsDataURL(file);
+
+      const { data } = supabase.storage
+        .from('profile_pictures')
+        .getPublicUrl(fileName);
+
+      await updateProfile({ avatarUrl: data.publicUrl });
+      toast.success("Profile image updated!");
+    } catch (error: any) {
+      toast.error(error.message || "Error uploading image");
+      console.error("Upload error:", error);
     }
   };
 
