@@ -11,9 +11,13 @@ import {
   Menu,
   X,
   ChevronLeft,
+  GraduationCap,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { AdminNotificationsPanel, AdminNotificationBell } from "./NotificationsPanel";
+import {
+  AdminNotificationsPanel,
+  AdminNotificationBell,
+} from "./NotificationsPanel";
 import { useProfile } from "@/contexts/ProfileContext";
 import { ThemeToggle } from "@/components/ThemeToggle";
 
@@ -24,6 +28,11 @@ interface SidebarProps {
 const navigation = [
   { name: "Overview", href: "/admin", icon: LayoutDashboard },
   { name: "Student Data", href: "/admin/table", icon: Table },
+  {
+    name: "Training",
+    href: "/admin/training-submissions",
+    icon: GraduationCap,
+  },
   { name: "Inbox", href: "/admin/inbox", icon: MessageSquare },
 ];
 
@@ -60,7 +69,7 @@ export function AdminDashboardLayout({ children }: SidebarProps) {
       onClick={() => setMobileOpen(false)}
       className={cn(
         "admin-nav-item",
-        isActive(item.href) && "admin-nav-item-active"
+        isActive(item.href) && "admin-nav-item-active",
       )}
     >
       <item.icon className="h-5 w-5 shrink-0" />
@@ -76,10 +85,11 @@ export function AdminDashboardLayout({ children }: SidebarProps) {
           to="/"
           className={cn(
             "block w-full text-center font-['Pecita'] font-bold text-primary hover:opacity-90 transition-all cursor-pointer",
-            collapsed ? "text-2xl" : "text-4xl"
+            collapsed ? "text-2xl" : "text-4xl",
           )}
           style={{
-            textShadow: '0 0 20px hsl(var(--primary) / 0.6), 0 0 40px hsl(var(--primary) / 0.4), 0 0 60px hsl(var(--primary) / 0.2)'
+            textShadow:
+              "0 0 20px hsl(var(--primary) / 0.6), 0 0 40px hsl(var(--primary) / 0.4), 0 0 60px hsl(var(--primary) / 0.2)",
           }}
           title="Return to Landing Page"
         >
@@ -129,7 +139,7 @@ export function AdminDashboardLayout({ children }: SidebarProps) {
         <ChevronLeft
           className={cn(
             "h-4 w-4 text-muted-foreground transition-transform",
-            collapsed && "rotate-180"
+            collapsed && "rotate-180",
           )}
         />
       </button>
@@ -150,7 +160,7 @@ export function AdminDashboardLayout({ children }: SidebarProps) {
       <aside
         className={cn(
           "fixed inset-y-0 left-0 z-50 w-64 bg-sidebar transform transition-transform duration-300 md:hidden",
-          mobileOpen ? "translate-x-0" : "-translate-x-full"
+          mobileOpen ? "translate-x-0" : "-translate-x-full",
         )}
       >
         <SidebarContent />
@@ -166,7 +176,7 @@ export function AdminDashboardLayout({ children }: SidebarProps) {
       <aside
         className={cn(
           "hidden md:flex relative flex-col bg-sidebar border-r border-sidebar-border transition-all duration-300",
-          collapsed ? "w-[72px]" : "w-64"
+          collapsed ? "w-[72px]" : "w-64",
         )}
       >
         <SidebarContent />
@@ -210,15 +220,25 @@ export function AdminDashboardLayout({ children }: SidebarProps) {
               onClick={() => setNotificationsOpen(true)}
               hasNew={true}
             />
-            <Link to="/admin/profile" className="flex items-center gap-3 hover:opacity-80 transition-opacity cursor-pointer">
-              {profile.avatarUrl && profile.avatarUrl !== "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face" ? (
+            <Link
+              to="/admin/profile"
+              className="flex items-center gap-3 hover:opacity-80 transition-opacity cursor-pointer"
+            >
+              {profile.avatarUrl &&
+              profile.avatarUrl !==
+                "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face" ? (
                 <div className="h-9 w-9 rounded-full overflow-hidden">
-                  <img src={profile.avatarUrl} alt="Avatar" className="h-full w-full object-cover" />
+                  <img
+                    src={profile.avatarUrl}
+                    alt="Avatar"
+                    className="h-full w-full object-cover"
+                  />
                 </div>
               ) : (
                 <div className="h-9 w-9 rounded-full bg-primary/10 flex items-center justify-center">
                   <span className="text-sm font-medium text-primary">
-                    {(profile.firstName?.[0] || "A") + (profile.lastName?.[0] || "D")}
+                    {(profile.firstName?.[0] || "A") +
+                      (profile.lastName?.[0] || "D")}
                   </span>
                 </div>
               )}
@@ -231,16 +251,18 @@ export function AdminDashboardLayout({ children }: SidebarProps) {
                 </p>
               </div>
             </Link>
-            <button onClick={handleLogout} className="ml-2 p-2 text-muted-foreground hover:text-destructive transition-colors" title="Logout">
+            <button
+              onClick={handleLogout}
+              className="ml-2 p-2 text-muted-foreground hover:text-destructive transition-colors"
+              title="Logout"
+            >
               <LogOut className="h-5 w-5" />
             </button>
           </div>
         </header>
 
         {/* Page Content */}
-        <main className="flex-1 p-4 md:p-6 overflow-auto">
-          {children}
-        </main>
+        <main className="flex-1 p-4 md:p-6 overflow-auto">{children}</main>
       </div>
 
       {/* Notifications Panel */}

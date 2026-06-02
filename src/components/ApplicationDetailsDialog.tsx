@@ -11,7 +11,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { FileText, User, Check, X, Download, ExternalLink } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 interface ApplicationDetailsDialogProps {
   open: boolean;
@@ -31,6 +31,28 @@ export function ApplicationDetailsDialog({
   readOnly,
 }: ApplicationDetailsDialogProps) {
   const [isUpdating, setIsUpdating] = useState(false);
+  const [trainingStatus, setTrainingStatus] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (open && application) {
+      fetchTrainingStatus();
+    }
+  }, [open, application]);
+
+  const fetchTrainingStatus = async () => {
+    try {
+      const { data, error } = await supabase
+        .from("training_submissions")
+        .select("status")
+        .eq("student_id", application.student_id)
+        .eq("training_id", application.opportunity_id)
+        .maybeSingle();
+
+      if (data) setTrainingStatus(data.status);
+    } catch (err) {
+      console.error("Error fetching training status:", err);
+    }
+  };
 
   if (!application) return null;
 
@@ -45,16 +67,28 @@ export function ApplicationDetailsDialog({
       | "completed"
       | "failed"
       | "ongoing"
-      | "in_review",
+      | "in_review"
+      | "completed_by_company",
   ) => {
     try {
       setIsUpdating(true);
+
+      let statusToUpdate = newStatus;
+
+      // Special handling for completion:
+      // Only move to completed_opportunity if training papers are already approved
+      if (newStatus === "completed" && trainingStatus !== "approved") {
+        statusToUpdate = "completed_by_company";
+        toast.info(
+          "Company review recorded. Waiting for Admin to approve training papers.",
+        );
+      }
 
       // First update the application status
       const { error } = await supabase
         .from("application")
         // @ts-ignore
-        .update({ status: newStatus })
+        .update({ status: statusToUpdate })
         .eq("id", application.id);
 
       if (error) throw error;
@@ -75,7 +109,69 @@ export function ApplicationDetailsDialog({
         }
       }
 
-      toast.success(`Application ${newStatus} successfully`);
+      // If completed, move to completed_opportunity table
+      if (statusToUpdate === "completed") {
+        const { error: completedError } = await supabase
+          .from("completed_opportunity")
+          .insert({
+            student_id: application.student_id,
+            opportunity_id: application.opportunity_id,
+            confirmed_by_company: true,
+            confirmed_by_student: true, // Assuming student already sent request
+            confirmed_by_payment: false,
+          });
+
+        if (completedError) {
+          console.error(
+            "Error creating completed opportunity record:",
+            completedError,
+          );
+        }
+
+        // Update student training days
+        if (opportunity?.duration) {
+          const currentDays = Number(student?.training_days || 0);
+          const additionalDays = Number(opportunity.duration);
+
+          const { error: updateDaysError } = await supabase
+            .from("student_profile")
+            .update({ training_days: currentDays + additionalDays })
+            .eq("id", application.student_id);
+
+          if (updateDaysError) {
+            console.error(
+              "Error updating student training days:",
+              updateDaysError,
+            );
+          }
+        }
+
+        // remove from assignments (as the job is now fully done)
+        const { error: deleteError } = await supabase
+          .from("assignment")
+          .delete()
+          .eq("student_id", application.student_id)
+          .eq("opportunity_id", application.opportunity_id);
+
+        if (deleteError) {
+          console.error("Error removing from assignment table:", deleteError);
+        }
+      }
+
+      // If failed, remove from assignments
+      if (statusToUpdate === "failed") {
+        const { error: deleteError } = await supabase
+          .from("assignment")
+          .delete()
+          .eq("student_id", application.student_id)
+          .eq("opportunity_id", application.opportunity_id);
+
+        if (deleteError) {
+          console.error("Error removing from assignment table:", deleteError);
+        }
+      }
+
+      toast.success(`Application status updated successfully`);
       onStatusUpdate();
       onOpenChange(false);
     } catch (error) {
@@ -231,8 +327,28 @@ export function ApplicationDetailsDialog({
               </div>
             )}
 
-            <div className="text-xs text-muted-foreground pt-4 border-t">
-              Applied on {new Date(application.created_at).toLocaleDateString()}
+            <div className="text-xs text-muted-foreground pt-4 border-t flex justify-between items-center">
+              <span>
+                Applied on{" "}
+                {new Date(application.created_at).toLocaleDateString()}
+              </span>
+              {trainingStatus && (
+                <span className="flex items-center gap-1">
+                  Training Papers:
+                  <Badge
+                    variant={
+                      trainingStatus === "approved"
+                        ? "default"
+                        : trainingStatus === "rejected"
+                          ? "destructive"
+                          : "secondary"
+                    }
+                    className="text-[10px] py-0 h-4"
+                  >
+                    {trainingStatus}
+                  </Badge>
+                </span>
+              )}
             </div>
           </div>
         </ScrollArea>
@@ -264,12 +380,19 @@ export function ApplicationDetailsDialog({
                   )}
 
                   {application.status === "ongoing" && (
-                    <div className="text-sm text-muted-foreground italic flex items-center">
-                      Waiting for student to finish work...
+                    <div className="text-sm text-muted-foreground italic flex items-center mr-4">
+                      In Progress...
                     </div>
                   )}
 
-                  {application.status === "in_review" && (
+                  {application.status === "completed_by_company" && (
+                    <div className="text-sm font-medium text-primary italic flex items-center mr-4">
+                      Company work finished. Awaiting Admin Approval...
+                    </div>
+                  )}
+
+                  {(application.status === "ongoing" ||
+                    application.status === "in_review") && (
                     <>
                       <Button
                         variant="outline"

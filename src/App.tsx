@@ -31,6 +31,7 @@ import AdminAnnouncementPage from "./pages/admin/AdminAnnouncementPage";
 import AdminAddAnnouncementPage from "./pages/admin/AdminAddAnnouncementPage";
 import AdminSettingsPage from "./pages/admin/AdminSettingsPage";
 import AdminProfilePage from "./pages/admin/AdminProfilePage";
+import AdminTrainingSubmissionsPage from "./pages/admin/AdminTrainingSubmissionsPage";
 
 const queryClient = new QueryClient();
 
@@ -48,27 +49,161 @@ const App = () => (
               <Route path="/auth" element={<Auth />} />
 
               {/* ── Company (protected) ────────────────────── */}
-              <Route path="/home" element={<RequireProfileCompletion><Home /></RequireProfileCompletion>} />
-              <Route path="/dashboard" element={<RequireProfileCompletion><Dashboard /></RequireProfileCompletion>} />
-              <Route path="/projects" element={<RequireProfileCompletion><Projects /></RequireProfileCompletion>} />
-              <Route path="/applicants" element={<RequireProfileCompletion><Applicants /></RequireProfileCompletion>} />
-              <Route path="/students" element={<RequireProfileCompletion><Students /></RequireProfileCompletion>} />
-              <Route path="/messages" element={<RequireProfileCompletion><Messages /></RequireProfileCompletion>} />
-              <Route path="/settings" element={<RequireProfileCompletion><Settings /></RequireProfileCompletion>} />
-              <Route path="/payment" element={<RequireProfileCompletion><Payment /></RequireProfileCompletion>} />
+              <Route
+                path="/home"
+                element={
+                  <RequireProfileCompletion>
+                    <Home />
+                  </RequireProfileCompletion>
+                }
+              />
+              <Route
+                path="/dashboard"
+                element={
+                  <RequireProfileCompletion>
+                    <Dashboard />
+                  </RequireProfileCompletion>
+                }
+              />
+              <Route
+                path="/projects"
+                element={
+                  <RequireProfileCompletion>
+                    <Projects />
+                  </RequireProfileCompletion>
+                }
+              />
+              <Route
+                path="/applicants"
+                element={
+                  <RequireProfileCompletion>
+                    <Applicants />
+                  </RequireProfileCompletion>
+                }
+              />
+              <Route
+                path="/students"
+                element={
+                  <RequireProfileCompletion>
+                    <Students />
+                  </RequireProfileCompletion>
+                }
+              />
+              <Route
+                path="/messages"
+                element={
+                  <RequireProfileCompletion>
+                    <Messages />
+                  </RequireProfileCompletion>
+                }
+              />
+              <Route
+                path="/settings"
+                element={
+                  <RequireProfileCompletion>
+                    <Settings />
+                  </RequireProfileCompletion>
+                }
+              />
+              <Route
+                path="/payment"
+                element={
+                  <RequireProfileCompletion>
+                    <Payment />
+                  </RequireProfileCompletion>
+                }
+              />
               <Route path="/profile" element={<Profile />} />
 
               {/* ── Admin (protected by RequireAdminAuth) ──── */}
-              <Route path="/admin" element={<RequireAdminAuth><AdminIndex /></RequireAdminAuth>} />
-              <Route path="/admin/table" element={<RequireAdminAuth><AdminTablePage /></RequireAdminAuth>} />
-              <Route path="/admin/inbox" element={<RequireAdminAuth><AdminInboxPage /></RequireAdminAuth>} />
-              <Route path="/admin/opportunities" element={<RequireAdminAuth><AdminOpportunitiesPage /></RequireAdminAuth>} />
-              <Route path="/admin/opportunities/:id/applicants" element={<RequireAdminAuth><AdminViewApplicantPage /></RequireAdminAuth>} />
-              <Route path="/admin/announcement" element={<RequireAdminAuth><AdminAnnouncementPage /></RequireAdminAuth>} />
-              <Route path="/admin/announcement/add" element={<RequireAdminAuth><AdminAddAnnouncementPage /></RequireAdminAuth>} />
-              <Route path="/admin/announcement/edit/:id" element={<RequireAdminAuth><AdminAddAnnouncementPage /></RequireAdminAuth>} />
-              <Route path="/admin/settings" element={<RequireAdminAuth><AdminSettingsPage /></RequireAdminAuth>} />
-              <Route path="/admin/profile" element={<RequireAdminAuth><AdminProfilePage /></RequireAdminAuth>} />
+              <Route
+                path="/admin"
+                element={
+                  <RequireAdminAuth>
+                    <AdminIndex />
+                  </RequireAdminAuth>
+                }
+              />
+              <Route
+                path="/admin/table"
+                element={
+                  <RequireAdminAuth>
+                    <AdminTablePage />
+                  </RequireAdminAuth>
+                }
+              />
+              <Route
+                path="/admin/inbox"
+                element={
+                  <RequireAdminAuth>
+                    <AdminInboxPage />
+                  </RequireAdminAuth>
+                }
+              />
+              <Route
+                path="/admin/opportunities"
+                element={
+                  <RequireAdminAuth>
+                    <AdminOpportunitiesPage />
+                  </RequireAdminAuth>
+                }
+              />
+              <Route
+                path="/admin/opportunities/:id/applicants"
+                element={
+                  <RequireAdminAuth>
+                    <AdminViewApplicantPage />
+                  </RequireAdminAuth>
+                }
+              />
+              <Route
+                path="/admin/announcement"
+                element={
+                  <RequireAdminAuth>
+                    <AdminAnnouncementPage />
+                  </RequireAdminAuth>
+                }
+              />
+              <Route
+                path="/admin/announcement/add"
+                element={
+                  <RequireAdminAuth>
+                    <AdminAddAnnouncementPage />
+                  </RequireAdminAuth>
+                }
+              />
+              <Route
+                path="/admin/announcement/edit/:id"
+                element={
+                  <RequireAdminAuth>
+                    <AdminAddAnnouncementPage />
+                  </RequireAdminAuth>
+                }
+              />
+              <Route
+                path="/admin/training-submissions"
+                element={
+                  <RequireAdminAuth>
+                    <AdminTrainingSubmissionsPage />
+                  </RequireAdminAuth>
+                }
+              />
+              <Route
+                path="/admin/settings"
+                element={
+                  <RequireAdminAuth>
+                    <AdminSettingsPage />
+                  </RequireAdminAuth>
+                }
+              />
+              <Route
+                path="/admin/profile"
+                element={
+                  <RequireAdminAuth>
+                    <AdminProfilePage />
+                  </RequireAdminAuth>
+                }
+              />
 
               <Route path="*" element={<NotFound />} />
             </Routes>
