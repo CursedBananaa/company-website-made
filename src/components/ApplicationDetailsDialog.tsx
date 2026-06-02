@@ -1,4 +1,10 @@
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -16,13 +22,13 @@ interface ApplicationDetailsDialogProps {
   readOnly?: boolean;
 }
 
-export function ApplicationDetailsDialog({ 
-  open, 
-  onOpenChange, 
-  application, 
+export function ApplicationDetailsDialog({
+  open,
+  onOpenChange,
+  application,
   onStatusUpdate,
   onViewProfile,
-  readOnly 
+  readOnly,
 }: ApplicationDetailsDialogProps) {
   const [isUpdating, setIsUpdating] = useState(false);
 
@@ -32,35 +38,62 @@ export function ApplicationDetailsDialog({
   const user = student?.user;
   const opportunity = application.opportunity;
 
-  const handleStatusUpdate = async (newStatus: 'accepted' | 'rejected' | 'completed' | 'failed') => {
+  const handleStatusUpdate = async (
+    newStatus:
+      | "accepted"
+      | "rejected"
+      | "completed"
+      | "failed"
+      | "ongoing"
+      | "in_review",
+  ) => {
     try {
       setIsUpdating(true);
+
+      // First update the application status
       const { error } = await supabase
-        .from('application')
+        .from("application")
         // @ts-ignore
         .update({ status: newStatus })
-        .eq('id', application.id);
+        .eq("id", application.id);
 
       if (error) throw error;
+
+      // If accepted/ongoing, also create an assignment record
+      if (newStatus === "ongoing") {
+        const { error: assignmentError } = await supabase
+          .from("assignment")
+          .insert({
+            student_id: application.student_id,
+            opportunity_id: application.opportunity_id,
+          });
+
+        if (assignmentError) {
+          console.error("Error creating assignment record:", assignmentError);
+          // We don't throw here to avoid failing the whole flow if the assignment insertion fails
+          // (e.g. if one somehow already exists), but we log it.
+        }
+      }
 
       toast.success(`Application ${newStatus} successfully`);
       onStatusUpdate();
       onOpenChange(false);
     } catch (error) {
-      console.error('Error updating status:', error);
-      toast.error('Failed to update application status');
+      console.error("Error updating status:", error);
+      toast.error("Failed to update application status");
     } finally {
       setIsUpdating(false);
     }
   };
 
-  const isProposalUrl = application.proposal && 
-    (application.proposal.startsWith('http://') || 
-     application.proposal.startsWith('https://') || 
-     application.proposal.includes('www.'));
+  const isProposalUrl =
+    application.proposal &&
+    (application.proposal.startsWith("http://") ||
+      application.proposal.startsWith("https://") ||
+      application.proposal.includes("www."));
 
   const getProposalUrl = (url: string) => {
-    if (url.startsWith('http://') || url.startsWith('https://')) {
+    if (url.startsWith("http://") || url.startsWith("https://")) {
       return url;
     }
     return `https://${url}`;
@@ -71,11 +104,23 @@ export function ApplicationDetailsDialog({
       <DialogContent className="sm:max-w-[600px] max-h-[90vh] flex flex-col">
         <DialogHeader>
           <DialogTitle className="flex items-center justify-between gap-4">
-            <span className="truncate">Application for {opportunity?.title}</span>
-            <Badge variant={
-              application.status === 'accepted' || application.status === 'completed' ? 'default' : 
-              application.status === 'rejected' || application.status === 'failed' ? 'destructive' : 'secondary'
-            }>
+            <span className="truncate">
+              Application for {opportunity?.title}
+            </span>
+            <Badge
+              variant={
+                application.status === "accepted" ||
+                application.status === "completed" ||
+                application.status === "ongoing"
+                  ? "default"
+                  : application.status === "rejected" ||
+                      application.status === "failed"
+                    ? "destructive"
+                    : application.status === "in_review"
+                      ? "secondary"
+                      : "secondary"
+              }
+            >
               {application.status}
             </Badge>
           </DialogTitle>
@@ -88,14 +133,22 @@ export function ApplicationDetailsDialog({
               <div className="flex items-center gap-3">
                 {/* Fallback avatar if no image */}
                 <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold">
-                  {user?.full_name?.charAt(0) || 'U'}
+                  {user?.full_name?.charAt(0) || "U"}
                 </div>
                 <div>
-                  <h3 className="font-semibold">{user?.full_name || 'Unknown Applicant'}</h3>
-                  <p className="text-sm text-muted-foreground">{student?.major || 'No Major'}</p>
+                  <h3 className="font-semibold">
+                    {user?.full_name || "Unknown Applicant"}
+                  </h3>
+                  <p className="text-sm text-muted-foreground">
+                    {student?.major || "No Major"}
+                  </p>
                 </div>
               </div>
-              <Button variant="outline" size="sm" onClick={() => onViewProfile(student)}>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => onViewProfile(student)}
+              >
                 <User className="h-4 w-4 mr-2" />
                 View Profile
               </Button>
@@ -109,10 +162,16 @@ export function ApplicationDetailsDialog({
               </h4>
               {application.proposal ? (
                 isProposalUrl ? (
-                  <Button 
-                    variant="outline" 
-                    className="w-full justify-start py-3 px-4" 
-                    onClick={() => window.open(getProposalUrl(application.proposal), '_blank', 'noopener,noreferrer')}
+                  <Button
+                    variant="outline"
+                    className="w-full justify-start py-3 px-4"
+                    onClick={() =>
+                      window.open(
+                        getProposalUrl(application.proposal),
+                        "_blank",
+                        "noopener,noreferrer",
+                      )
+                    }
                   >
                     <ExternalLink className="h-4 w-4 mr-2 shrink-0" />
                     <span>View Proposal</span>
@@ -136,7 +195,11 @@ export function ApplicationDetailsDialog({
                 <div className="flex gap-2">
                   {application.cv && (
                     <Button variant="outline" size="sm" asChild>
-                      <a href={application.cv} target="_blank" rel="noopener noreferrer">
+                      <a
+                        href={application.cv}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
                         <Download className="h-4 w-4 mr-2" />
                         Application CV
                       </a>
@@ -144,7 +207,11 @@ export function ApplicationDetailsDialog({
                   )}
                   {student?.cv_url && (
                     <Button variant="outline" size="sm" asChild>
-                      <a href={student.cv_url} target="_blank" rel="noopener noreferrer">
+                      <a
+                        href={student.cv_url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
                         <Download className="h-4 w-4 mr-2" />
                         Student CV
                       </a>
@@ -156,12 +223,14 @@ export function ApplicationDetailsDialog({
 
             {/* Notes */}
             {application.notes && (
-               <div className="space-y-2">
-                 <h4 className="font-semibold">Notes</h4>
-                 <p className="text-sm text-muted-foreground">{application.notes}</p>
-               </div>
+              <div className="space-y-2">
+                <h4 className="font-semibold">Notes</h4>
+                <p className="text-sm text-muted-foreground">
+                  {application.notes}
+                </p>
+              </div>
             )}
-            
+
             <div className="text-xs text-muted-foreground pt-4 border-t">
               Applied on {new Date(application.created_at).toLocaleDateString()}
             </div>
@@ -171,24 +240,55 @@ export function ApplicationDetailsDialog({
         <DialogFooter className="gap-2 sm:gap-0">
           <div className="flex w-full justify-between items-center gap-2">
             <div className="flex gap-2">
-              {!readOnly && (application.status === 'pending' || application.status === 'accepted') && (
+              {!readOnly && (
                 <>
-                  <Button 
-                    variant="outline" 
-                    className="border-destructive text-destructive hover:bg-destructive hover:text-destructive-foreground"
-                    onClick={() => handleStatusUpdate('failed')}
-                    disabled={isUpdating}
-                  >
-                    <X className="h-4 w-4 mr-2" />
-                    Failed
-                  </Button>
-                  <Button 
-                    onClick={() => handleStatusUpdate('completed')}
-                    disabled={isUpdating}
-                  >
-                    <Check className="h-4 w-4 mr-2" />
-                    Completed
-                  </Button>
+                  {application.status === "pending" && (
+                    <>
+                      <Button
+                        variant="outline"
+                        className="border-destructive text-destructive hover:bg-destructive hover:text-destructive-foreground"
+                        onClick={() => handleStatusUpdate("rejected")}
+                        disabled={isUpdating}
+                      >
+                        <X className="h-4 w-4 mr-2" />
+                        Reject
+                      </Button>
+                      <Button
+                        onClick={() => handleStatusUpdate("ongoing")}
+                        disabled={isUpdating}
+                      >
+                        <Check className="h-4 w-4 mr-2" />
+                        Accept
+                      </Button>
+                    </>
+                  )}
+
+                  {application.status === "ongoing" && (
+                    <div className="text-sm text-muted-foreground italic flex items-center">
+                      Waiting for student to finish work...
+                    </div>
+                  )}
+
+                  {application.status === "in_review" && (
+                    <>
+                      <Button
+                        variant="outline"
+                        className="border-destructive text-destructive hover:bg-destructive hover:text-destructive-foreground"
+                        onClick={() => handleStatusUpdate("failed")}
+                        disabled={isUpdating}
+                      >
+                        <X className="h-4 w-4 mr-2" />
+                        Failed
+                      </Button>
+                      <Button
+                        onClick={() => handleStatusUpdate("completed")}
+                        disabled={isUpdating}
+                      >
+                        <Check className="h-4 w-4 mr-2" />
+                        Complete
+                      </Button>
+                    </>
+                  )}
                 </>
               )}
             </div>

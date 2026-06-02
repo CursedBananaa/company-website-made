@@ -1,6 +1,16 @@
 import { cn } from "@/lib/utils";
 
-type StatusType = "active" | "pending" | "draft" | "complete" | "completed" | "accepted" | "rejected" | "failed";
+type StatusType =
+  | "active"
+  | "pending"
+  | "draft"
+  | "complete"
+  | "completed"
+  | "accepted"
+  | "rejected"
+  | "failed"
+  | "ongoing"
+  | "in_review";
 
 interface StatusBadgeProps {
   status: StatusType | string;
@@ -14,6 +24,8 @@ const statusStyles: Record<string, string> = {
   complete: "bg-chart-pink text-primary-foreground",
   completed: "bg-chart-pink text-primary-foreground",
   accepted: "bg-success/20 text-success border border-success/30",
+  ongoing: "bg-success/20 text-success border border-success/30",
+  in_review: "bg-pending text-pending-foreground",
   rejected: "bg-destructive/20 text-destructive border border-destructive/30",
   failed: "bg-destructive text-destructive-foreground",
 };
@@ -25,20 +37,22 @@ const statusLabels: Record<string, string> = {
   complete: "Complete",
   completed: "Completed",
   accepted: "Accepted",
+  ongoing: "Ongoing",
+  in_review: "In Review",
   rejected: "Rejected",
   failed: "Failed",
 };
 
 export function StatusBadge({ status, className }: StatusBadgeProps) {
   // Fallback if status is completely unknown
-  const validStatus = statusStyles[status] ? status : 'pending';
+  const validStatus = statusStyles[status] ? status : "pending";
 
   return (
     <span
       className={cn(
         "inline-flex items-center px-3 py-1 rounded-full text-xs font-medium",
         statusStyles[validStatus],
-        className
+        className,
       )}
     >
       {statusLabels[validStatus]}

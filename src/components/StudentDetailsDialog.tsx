@@ -1,7 +1,20 @@
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { Mail, Phone, MapPin, GraduationCap, Github, FileText, Globe } from "lucide-react";
+import {
+  Mail,
+  Phone,
+  MapPin,
+  GraduationCap,
+  Github,
+  FileText,
+  Globe,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 interface StudentDetailsDialogProps {
@@ -10,15 +23,20 @@ interface StudentDetailsDialogProps {
   student: any; // We'll type this properly if possible, or use any for now given the join complexity
 }
 
-export function StudentDetailsDialog({ open, onOpenChange, student }: StudentDetailsDialogProps) {
+export function StudentDetailsDialog({
+  open,
+  onOpenChange,
+  student,
+}: StudentDetailsDialogProps) {
   if (!student) return null;
 
   const user = student.user || {};
-  const initials = user.full_name
-    ?.split(" ")
-    .map((n: string) => n[0])
-    .join("")
-    .toUpperCase() || "ST";
+  const initials =
+    user.full_name
+      ?.split(" ")
+      .map((n: string) => n[0])
+      .join("")
+      .toUpperCase() || "ST";
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -59,7 +77,9 @@ export function StudentDetailsDialog({ open, onOpenChange, student }: StudentDet
                   </div>
                   <div className="overflow-hidden">
                     <p className="text-muted-foreground text-xs">Email</p>
-                    <p className="font-medium truncate" title={user.email}>{user.email}</p>
+                    <p className="font-medium truncate" title={user.email}>
+                      {user.email}
+                    </p>
                   </div>
                 </div>
                 {user.phone_number && (
@@ -85,15 +105,25 @@ export function StudentDetailsDialog({ open, onOpenChange, student }: StudentDet
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <p className="text-xs text-muted-foreground">Major</p>
-                    <p className="text-sm font-medium">{student.major || "N/A"}</p>
+                    <p className="text-sm font-medium">
+                      {student.major || "N/A"}
+                    </p>
                   </div>
                   <div>
-                    <p className="text-xs text-muted-foreground">Graduation Year</p>
-                    <p className="text-sm font-medium">{student.grad_year || "N/A"}</p>
+                    <p className="text-xs text-muted-foreground">
+                      Graduation Year
+                    </p>
+                    <p className="text-sm font-medium">
+                      {student.grad_year || "N/A"}
+                    </p>
                   </div>
                   <div>
-                    <p className="text-xs text-muted-foreground">Training Days</p>
-                    <p className="text-sm font-medium">{student.training_days || 0} Days</p>
+                    <p className="text-xs text-muted-foreground">
+                      Training Days
+                    </p>
+                    <p className="text-sm font-medium">
+                      {student.training_days || 0} Days
+                    </p>
                   </div>
                 </div>
               </div>
@@ -119,30 +149,63 @@ export function StudentDetailsDialog({ open, onOpenChange, student }: StudentDet
             <div className="space-y-3">
               <h3 className="font-semibold flex items-center justify-between">
                 <span>Work History</span>
-                <Badge variant={student.application.some((app: any) => app.status === 'accepted') ? "default" : "outline"}>
-                   {student.application.some((app: any) => app.status === 'accepted') ? "Currently Working" : "Available"}
+                <Badge
+                  variant={
+                    student.application.some((app: any) =>
+                      [
+                        "accepted",
+                        "ongoing",
+                        "in_review",
+                        "completed",
+                      ].includes(app.status),
+                    )
+                      ? "default"
+                      : "outline"
+                  }
+                >
+                  {student.application.some((app: any) =>
+                    ["accepted", "ongoing", "in_review"].includes(app.status),
+                  )
+                    ? "Currently Working"
+                    : "Available"}
                 </Badge>
               </h3>
               <div className="space-y-2 border rounded-md p-2 max-h-[200px] overflow-y-auto">
-                 {student.application.map((app: any, index: number) => (
-                    <div key={index} className="flex justify-between items-center text-sm p-2 hover:bg-muted/50 rounded-sm">
-                      <div>
-                        <p className="font-medium">{app.opportunity?.title || "Unknown Project"}</p>
-                        <p className="text-xs text-muted-foreground">{app.opportunity?.company_profile?.industry || "Unknown Industry"}</p>
-                      </div>
-                      <div className="text-right">
-                         <Badge variant={
-                           app.status === 'accepted' ? 'default' : 
-                           app.status === 'rejected' ? 'destructive' : 'secondary'
-                         } className="text-xs">
-                           {app.status}
-                         </Badge>
-                         <p className="text-xs text-muted-foreground mt-1">
-                           {new Date(app.created_at).toLocaleDateString()}
-                         </p>
-                      </div>
+                {student.application.map((app: any, index: number) => (
+                  <div
+                    key={index}
+                    className="flex justify-between items-center text-sm p-2 hover:bg-muted/50 rounded-sm"
+                  >
+                    <div>
+                      <p className="font-medium">
+                        {app.opportunity?.title || "Unknown Project"}
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        {app.opportunity?.company_profile?.industry ||
+                          "Unknown Industry"}
+                      </p>
                     </div>
-                 ))}
+                    <div className="text-right">
+                      <Badge
+                        variant={
+                          ["accepted", "ongoing", "completed"].includes(
+                            app.status,
+                          )
+                            ? "default"
+                            : ["rejected", "failed"].includes(app.status)
+                              ? "destructive"
+                              : "secondary"
+                        }
+                        className="text-xs"
+                      >
+                        {app.status}
+                      </Badge>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        {new Date(app.created_at).toLocaleDateString()}
+                      </p>
+                    </div>
+                  </div>
+                ))}
               </div>
             </div>
           )}
@@ -162,7 +225,11 @@ export function StudentDetailsDialog({ open, onOpenChange, student }: StudentDet
             <div className="flex gap-4 pt-2">
               {student.cv_url && (
                 <Button variant="outline" className="flex-1 gap-2" asChild>
-                  <a href={student.cv_url} target="_blank" rel="noopener noreferrer">
+                  <a
+                    href={student.cv_url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
                     <FileText className="h-4 w-4" />
                     View CV
                   </a>
@@ -170,7 +237,11 @@ export function StudentDetailsDialog({ open, onOpenChange, student }: StudentDet
               )}
               {student.github_url && (
                 <Button variant="outline" className="flex-1 gap-2" asChild>
-                  <a href={student.github_url} target="_blank" rel="noopener noreferrer">
+                  <a
+                    href={student.github_url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
                     <Github className="h-4 w-4" />
                     GitHub Profile
                   </a>

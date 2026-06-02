@@ -73,6 +73,15 @@ CREATE TABLE IF NOT EXISTS public.application (
   CONSTRAINT application_pkey PRIMARY KEY (id)
 );
 
+-- ASSIGNMENT (Ongoing Projects)
+CREATE TABLE IF NOT EXISTS public.assignment (
+  id bigint GENERATED ALWAYS AS IDENTITY NOT NULL,
+  created_at timestamp with time zone NOT NULL DEFAULT now(),
+  student_id bigint REFERENCES public.student_profile(id),
+  opportunity_id bigint REFERENCES public.opportunity(id),
+  CONSTRAINT assignment_pkey PRIMARY KEY (id)
+);
+
 -- OPTIONAL: STUDENT SKILLS (If needed)
 CREATE TABLE IF NOT EXISTS public.student_skills (
   student_id bigint REFERENCES public.student_profile(id),
@@ -87,6 +96,7 @@ ALTER TABLE public.company_profile ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.student_profile ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.opportunity ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.application ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.assignment ENABLE ROW LEVEL SECURITY;
 
 -- Allow read access for authenticated users (Modify as needed)
 CREATE POLICY "Enable read access for all users" ON public.user FOR SELECT USING (true);
@@ -96,10 +106,12 @@ CREATE POLICY "Enable read access for all users" ON public.company_profile FOR S
 CREATE POLICY "Enable read access for all users" ON public.student_profile FOR SELECT USING (true);
 CREATE POLICY "Enable read access for all users" ON public.opportunity FOR SELECT USING (true);
 CREATE POLICY "Enable read access for all users" ON public.application FOR SELECT USING (true);
+CREATE POLICY "Enable read access for all users" ON public.assignment FOR SELECT USING (true);
 
 -- Allow insert/update based on ownership (Simplified)
 CREATE POLICY "Enable insert for authenticated users" ON public.opportunity FOR INSERT WITH CHECK (auth.role() = 'authenticated');
 CREATE POLICY "Enable insert for authenticated users" ON public.application FOR INSERT WITH CHECK (auth.role() = 'authenticated');
+CREATE POLICY "Enable insert for authenticated users" ON public.assignment FOR INSERT WITH CHECK (auth.role() = 'authenticated');
 
 -- User update policy
 CREATE POLICY "Users can update own profile" ON public.user FOR UPDATE USING (auth.uid() = auth_id);
