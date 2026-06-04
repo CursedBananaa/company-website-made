@@ -37,7 +37,8 @@ const AdminViewApplicantPage = () => {
       setLoading(true);
       let query = supabase
         .from("application")
-        .select(`
+        .select(
+          `
           *,
           opportunity (
             title,
@@ -71,7 +72,8 @@ const AdminViewApplicantPage = () => {
               )
             )
           )
-        `)
+        `,
+        )
         .order("created_at", { ascending: false });
 
       if (id && id !== "all") {
@@ -89,8 +91,10 @@ const AdminViewApplicantPage = () => {
       const formattedApplicants: Applicant[] = apps.map((app: any) => {
         const studentProfile = app.student_profile;
         const user = studentProfile?.user;
-        const isAdminProject = !app.opportunity?.company_id || app.opportunity?.company_id === profile.companyId;
-        
+        const isAdminProject =
+          !app.opportunity?.company_id ||
+          app.opportunity?.company_id === profile.companyId;
+
         return {
           id: app.id.toString(),
           project: app.opportunity?.title || "Unknown Project",
@@ -100,7 +104,7 @@ const AdminViewApplicantPage = () => {
           department: studentProfile?.major || "-",
           status: app.status || "pending",
           type: isAdminProject ? "Admin" : "Company",
-          raw: app
+          raw: app,
         };
       });
 
@@ -141,27 +145,51 @@ const AdminViewApplicantPage = () => {
             <table className="w-full">
               <thead>
                 <tr className="border-b border-border bg-muted/30">
-                  <th className="text-left py-4 px-6 text-sm font-semibold text-foreground">ID</th>
-                  <th className="text-left py-4 px-6 text-sm font-semibold text-foreground">NAME</th>
-                  <th className="text-left py-4 px-6 text-sm font-semibold text-foreground">PROJECT</th>
-                  <th className="text-left py-4 px-6 text-sm font-semibold text-foreground">Std-Year</th>
-                  <th className="text-left py-4 px-6 text-sm font-semibold text-foreground">DATE</th>
-                  <th className="text-left py-4 px-6 text-sm font-semibold text-foreground">Dep</th>
-                  <th className="text-left py-4 px-6 text-sm font-semibold text-foreground">TYPE</th>
-                  <th className="text-left py-4 px-6 text-sm font-semibold text-foreground">STATUS</th>
-                  <th className="text-left py-4 px-6 text-sm font-semibold text-foreground">ACTIONS</th>
+                  <th className="text-left py-4 px-6 text-sm font-semibold text-foreground">
+                    ID
+                  </th>
+                  <th className="text-left py-4 px-6 text-sm font-semibold text-foreground">
+                    NAME
+                  </th>
+                  <th className="text-left py-4 px-6 text-sm font-semibold text-foreground">
+                    PROJECT
+                  </th>
+                  <th className="text-left py-4 px-6 text-sm font-semibold text-foreground">
+                    Std-Year
+                  </th>
+                  <th className="text-left py-4 px-6 text-sm font-semibold text-foreground">
+                    DATE
+                  </th>
+                  <th className="text-left py-4 px-6 text-sm font-semibold text-foreground">
+                    Dep
+                  </th>
+                  <th className="text-left py-4 px-6 text-sm font-semibold text-foreground">
+                    TYPE
+                  </th>
+                  <th className="text-left py-4 px-6 text-sm font-semibold text-foreground">
+                    STATUS
+                  </th>
+                  <th className="text-left py-4 px-6 text-sm font-semibold text-foreground">
+                    ACTIONS
+                  </th>
                 </tr>
               </thead>
               <tbody>
                 {loading ? (
                   <tr>
-                    <td colSpan={9} className="py-8 text-center text-muted-foreground">
+                    <td
+                      colSpan={9}
+                      className="py-8 text-center text-muted-foreground"
+                    >
                       Loading applicants...
                     </td>
                   </tr>
                 ) : applicants.length === 0 ? (
                   <tr>
-                    <td colSpan={9} className="py-8 text-center text-muted-foreground">
+                    <td
+                      colSpan={9}
+                      className="py-8 text-center text-muted-foreground"
+                    >
                       No applications found.
                     </td>
                   </tr>
@@ -171,14 +199,28 @@ const AdminViewApplicantPage = () => {
                       key={applicant.id}
                       className="border-b border-border last:border-0 hover:bg-muted/50 transition-colors"
                     >
-                      <td className="py-4 px-6 text-sm text-muted-foreground">{applicant.id}</td>
-                      <td className="py-4 px-6 text-sm font-medium text-foreground">{applicant.name}</td>
-                      <td className="py-4 px-6 text-sm font-medium text-foreground">{applicant.project}</td>
-                      <td className="py-4 px-6 text-sm text-muted-foreground">{applicant.stdYear}</td>
-                      <td className="py-4 px-6 text-sm text-muted-foreground">{applicant.date}</td>
-                      <td className="py-4 px-6 text-sm text-muted-foreground">{applicant.department}</td>
+                      <td className="py-4 px-6 text-sm text-muted-foreground">
+                        {applicant.id}
+                      </td>
+                      <td className="py-4 px-6 text-sm font-medium text-foreground">
+                        {applicant.name}
+                      </td>
+                      <td className="py-4 px-6 text-sm font-medium text-foreground">
+                        {applicant.project}
+                      </td>
+                      <td className="py-4 px-6 text-sm text-muted-foreground">
+                        {applicant.stdYear}
+                      </td>
+                      <td className="py-4 px-6 text-sm text-muted-foreground">
+                        {applicant.date}
+                      </td>
+                      <td className="py-4 px-6 text-sm text-muted-foreground">
+                        {applicant.department}
+                      </td>
                       <td className="py-4 px-6 text-sm font-medium">
-                        <span className={`px-2 py-1 rounded text-xs ${applicant.type === 'Admin' ? 'bg-primary/10 text-primary' : 'bg-secondary text-secondary-foreground'}`}>
+                        <span
+                          className={`px-2 py-1 rounded text-xs ${applicant.type === "Admin" ? "bg-primary/10 text-primary" : "bg-secondary text-secondary-foreground"}`}
+                        >
                           {applicant.type}
                         </span>
                       </td>
@@ -186,8 +228,8 @@ const AdminViewApplicantPage = () => {
                         <StatusBadge status={applicant.status} />
                       </td>
                       <td className="py-4 px-6">
-                        <Button 
-                          variant="ghost" 
+                        <Button
+                          variant="ghost"
                           size="sm"
                           className="hover:bg-primary/10 hover:text-primary"
                           onClick={() => handleViewApplication(applicant)}
@@ -204,19 +246,21 @@ const AdminViewApplicantPage = () => {
           </div>
         </div>
 
-        <ApplicationDetailsDialog 
-          open={isAppDetailsOpen} 
-          onOpenChange={handleAppDetailsOpenChange} 
+        <ApplicationDetailsDialog
+          open={isAppDetailsOpen}
+          onOpenChange={handleAppDetailsOpenChange}
           application={selectedApplication}
           onStatusUpdate={fetchApplicants}
           onViewProfile={handleViewStudentProfile}
-          readOnly={selectedApplication?.opportunity?.company_id !== profile.companyId}
+          readOnly={
+            selectedApplication?.opportunity?.company_id !== profile.companyId
+          }
         />
 
-        <StudentDetailsDialog 
-          open={isStudentProfileOpen} 
-          onOpenChange={setIsStudentProfileOpen} 
-          student={selectedStudent} 
+        <StudentDetailsDialog
+          open={isStudentProfileOpen}
+          onOpenChange={setIsStudentProfileOpen}
+          student={selectedStudent}
         />
       </div>
     </AdminDashboardLayout>

@@ -21,59 +21,71 @@ interface Opportunity {
 
 const THEMES = [
   {
-    cardGlow: 'hover:shadow-[0_0_20px_rgba(59,130,246,0.3)] hover:border-blue-500/50',
-    buttonBg: 'bg-blue-500',
-    buttonHover: 'hover:bg-blue-600',
-    buttonGlow: 'shadow-[0_0_15px_rgba(59,130,246,0.5)]',
-    iconColor: 'text-blue-500',
-    iconBg: 'bg-blue-500/10',
-    titleColor: 'group-hover:text-blue-500 group-hover:drop-shadow-[0_0_8px_rgba(59,130,246,0.5)]'
+    cardGlow:
+      "hover:shadow-[0_0_20px_rgba(59,130,246,0.3)] hover:border-blue-500/50",
+    buttonBg: "bg-blue-500",
+    buttonHover: "hover:bg-blue-600",
+    buttonGlow: "shadow-[0_0_15px_rgba(59,130,246,0.5)]",
+    iconColor: "text-blue-500",
+    iconBg: "bg-blue-500/10",
+    titleColor:
+      "group-hover:text-blue-500 group-hover:drop-shadow-[0_0_8px_rgba(59,130,246,0.5)]",
   },
   {
-    cardGlow: 'hover:shadow-[0_0_20px_rgba(16,185,129,0.3)] hover:border-emerald-500/50',
-    buttonBg: 'bg-emerald-500',
-    buttonHover: 'hover:bg-emerald-600',
-    buttonGlow: 'shadow-[0_0_15px_rgba(16,185,129,0.5)]',
-    iconColor: 'text-emerald-500',
-    iconBg: 'bg-emerald-500/10',
-    titleColor: 'group-hover:text-emerald-500 group-hover:drop-shadow-[0_0_8px_rgba(16,185,129,0.5)]'
+    cardGlow:
+      "hover:shadow-[0_0_20px_rgba(16,185,129,0.3)] hover:border-emerald-500/50",
+    buttonBg: "bg-emerald-500",
+    buttonHover: "hover:bg-emerald-600",
+    buttonGlow: "shadow-[0_0_15px_rgba(16,185,129,0.5)]",
+    iconColor: "text-emerald-500",
+    iconBg: "bg-emerald-500/10",
+    titleColor:
+      "group-hover:text-emerald-500 group-hover:drop-shadow-[0_0_8px_rgba(16,185,129,0.5)]",
   },
   {
-    cardGlow: 'hover:shadow-[0_0_20px_rgba(139,92,246,0.3)] hover:border-violet-500/50',
-    buttonBg: 'bg-violet-500',
-    buttonHover: 'hover:bg-violet-600',
-    buttonGlow: 'shadow-[0_0_15px_rgba(139,92,246,0.5)]',
-    iconColor: 'text-violet-500',
-    iconBg: 'bg-violet-500/10',
-    titleColor: 'group-hover:text-violet-500 group-hover:drop-shadow-[0_0_8px_rgba(139,92,246,0.5)]'
+    cardGlow:
+      "hover:shadow-[0_0_20px_rgba(139,92,246,0.3)] hover:border-violet-500/50",
+    buttonBg: "bg-violet-500",
+    buttonHover: "hover:bg-violet-600",
+    buttonGlow: "shadow-[0_0_15px_rgba(139,92,246,0.5)]",
+    iconColor: "text-violet-500",
+    iconBg: "bg-violet-500/10",
+    titleColor:
+      "group-hover:text-violet-500 group-hover:drop-shadow-[0_0_8px_rgba(139,92,246,0.5)]",
   },
   {
-    cardGlow: 'hover:shadow-[0_0_20px_rgba(244,63,94,0.3)] hover:border-rose-500/50',
-    buttonBg: 'bg-rose-500',
-    buttonHover: 'hover:bg-rose-600',
-    buttonGlow: 'shadow-[0_0_15px_rgba(244,63,94,0.5)]',
-    iconColor: 'text-rose-500',
-    iconBg: 'bg-rose-500/10',
-    titleColor: 'group-hover:text-rose-500 group-hover:drop-shadow-[0_0_8px_rgba(244,63,94,0.5)]'
+    cardGlow:
+      "hover:shadow-[0_0_20px_rgba(244,63,94,0.3)] hover:border-rose-500/50",
+    buttonBg: "bg-rose-500",
+    buttonHover: "hover:bg-rose-600",
+    buttonGlow: "shadow-[0_0_15px_rgba(244,63,94,0.5)]",
+    iconColor: "text-rose-500",
+    iconBg: "bg-rose-500/10",
+    titleColor:
+      "group-hover:text-rose-500 group-hover:drop-shadow-[0_0_8px_rgba(244,63,94,0.5)]",
   },
   {
-    cardGlow: 'hover:shadow-[0_0_20px_rgba(245,158,11,0.3)] hover:border-amber-500/50',
-    buttonBg: 'bg-amber-500',
-    buttonHover: 'hover:bg-amber-600',
-    buttonGlow: 'shadow-[0_0_15px_rgba(245,158,11,0.5)]',
-    iconColor: 'text-amber-500',
-    iconBg: 'bg-amber-500/10',
-    titleColor: 'group-hover:text-amber-500 group-hover:drop-shadow-[0_0_8px_rgba(245,158,11,0.5)]'
+    cardGlow:
+      "hover:shadow-[0_0_20px_rgba(245,158,11,0.3)] hover:border-amber-500/50",
+    buttonBg: "bg-amber-500",
+    buttonHover: "hover:bg-amber-600",
+    buttonGlow: "shadow-[0_0_15px_rgba(245,158,11,0.5)]",
+    iconColor: "text-amber-500",
+    iconBg: "bg-amber-500/10",
+    titleColor:
+      "group-hover:text-amber-500 group-hover:drop-shadow-[0_0_8px_rgba(245,158,11,0.5)]",
   },
   {
-    cardGlow: 'hover:shadow-[0_0_20px_rgba(6,182,212,0.3)] hover:border-cyan-500/50',
-    buttonBg: 'bg-cyan-500',
-    buttonHover: 'hover:bg-cyan-600',
-    buttonGlow: 'shadow-[0_0_15px_rgba(6,182,212,0.5)]',
-    iconColor: 'text-cyan-500',
-    iconBg: 'bg-cyan-500/10',
-    titleColor: 'group-hover:text-cyan-500 group-hover:drop-shadow-[0_0_8px_rgba(6,182,212,0.5)]'
-  }
+    cardGlow:
+      "hover:shadow-[0_0_20px_rgba(6,182,212,0.3)] hover:border-cyan-500/50",
+    buttonBg: "bg-cyan-500",
+    buttonHover: "hover:bg-cyan-600",
+    buttonGlow: "shadow-[0_0_15px_rgba(6,182,212,0.5)]",
+    iconColor: "text-cyan-500",
+    iconBg: "bg-cyan-500/10",
+    titleColor:
+      "group-hover:text-cyan-500 group-hover:drop-shadow-[0_0_8px_rgba(6,182,212,0.5)]",
+  },
 ];
 
 const AdminOpportunitiesPage = () => {
@@ -86,9 +98,12 @@ const AdminOpportunitiesPage = () => {
   const handleDelete = async (id: string) => {
     if (window.confirm("Are you sure you want to delete this opportunity?")) {
       try {
-        const { error } = await supabase.from("opportunity").delete().eq("id", id);
+        const { error } = await supabase
+          .from("opportunity")
+          .delete()
+          .eq("id", id);
         if (error) throw error;
-        setOpportunities(prev => prev.filter(opp => opp.id !== id));
+        setOpportunities((prev) => prev.filter((opp) => opp.id !== id));
       } catch (error) {
         console.error("Error deleting opportunity:", error);
         alert("Failed to delete opportunity");
@@ -105,7 +120,7 @@ const AdminOpportunitiesPage = () => {
         .order("created_at", { ascending: false });
 
       if (opps) {
-        const formattedOpps = opps.map(opp => {
+        const formattedOpps = opps.map((opp) => {
           // Calculate days ago
           const created = new Date(opp.created_at);
           const now = new Date();
@@ -113,13 +128,15 @@ const AdminOpportunitiesPage = () => {
           const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 
           // Parse tags
-          const rawTags = opp.requirements ? opp.requirements.split(',').map((t: string) => t.trim()) : [];
+          const rawTags = opp.requirements
+            ? opp.requirements.split(",").map((t: string) => t.trim())
+            : [];
           const tags = rawTags.filter((t: string) => t.length > 0).slice(0, 3); // limit to 3 tags
 
           // Get company name
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          const companyName = opp.company_id 
-            ? ((opp.company_profile as any)?.user?.full_name || "Unknown Company")
+          const companyName = opp.company_id
+            ? (opp.company_profile as any)?.user?.full_name || "Unknown Company"
             : "Admin";
 
           return {
@@ -127,7 +144,9 @@ const AdminOpportunitiesPage = () => {
             title: opp.title || "Untitled",
             company: companyName,
             tags: tags,
-            duration: opp.duration ? `${opp.duration} days` : "Unknown duration",
+            duration: opp.duration
+              ? `${opp.duration} days`
+              : "Unknown duration",
             postedDays: diffDays,
             raw: opp,
           };
@@ -170,19 +189,16 @@ const AdminOpportunitiesPage = () => {
             >
               View Applicants
             </Button>
-            <Button
-              onClick={() => setIsAddProjectOpen(true)}
-              className="gap-2"
-            >
+            <Button onClick={() => setIsAddProjectOpen(true)} className="gap-2">
               <Plus className="h-4 w-4" />
               Add Project
             </Button>
           </div>
         </div>
 
-        <AddProjectDialog 
-          open={isAddProjectOpen} 
-          onOpenChange={handleOpenChange} 
+        <AddProjectDialog
+          open={isAddProjectOpen}
+          onOpenChange={handleOpenChange}
           projectToEdit={editingProject}
         />
 
@@ -190,74 +206,85 @@ const AdminOpportunitiesPage = () => {
           {isLoading ? (
             <p>Loading projects...</p>
           ) : opportunities?.length === 0 ? (
-             <p className="text-muted-foreground">No opportunities found.</p>
-          ) : opportunities?.map((opp: any, index: number) => {
-            const theme = THEMES[index % THEMES.length];
-            return (
-            <Card key={opp.id} className={`relative group transition-all duration-300 overflow-hidden ${theme.cardGlow}`}>
-              {opp.raw?.image_url && (
-                <div className="w-full h-40 overflow-hidden">
-                  <img src={opp.raw.image_url} alt={opp.title} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
-                </div>
-              )}
-              <CardContent className="p-4 space-y-3">
-                <div className="flex justify-between items-start">
-                  <h3 className={`font-semibold transition-all duration-300 ${theme.titleColor}`}>{opp.title}</h3>
-                </div>
+            <p className="text-muted-foreground">No opportunities found.</p>
+          ) : (
+            opportunities?.map((opp: any, index: number) => {
+              const theme = THEMES[index % THEMES.length];
+              return (
+                <Card
+                  key={opp.id}
+                  className={`relative group transition-all duration-300 overflow-hidden ${theme.cardGlow}`}
+                >
+                  {opp.raw?.image_url && (
+                    <div className="w-full h-40 overflow-hidden">
+                      <img
+                        src={opp.raw.image_url}
+                        alt={opp.title}
+                        className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                      />
+                    </div>
+                  )}
+                  <CardContent className="p-4 space-y-3">
+                    <div className="flex justify-between items-start">
+                      <h3
+                        className={`font-semibold transition-all duration-300 ${theme.titleColor}`}
+                      >
+                        {opp.title}
+                      </h3>
+                    </div>
 
-                <div className="flex items-center gap-2">
-                  <StatusBadge status="active" /> 
-                  <span className="text-sm text-muted-foreground">
-                  </span>
-                </div>
+                    <div className="flex items-center gap-2">
+                      <StatusBadge status="active" />
+                      <span className="text-sm text-muted-foreground"></span>
+                    </div>
 
-                <div className="text-sm">
-                  <span className="text-muted-foreground">Created By</span>
-                  <span className="ml-4">
-                    {opp.company || "Unknown"}
-                  </span>
-                </div>
+                    <div className="text-sm">
+                      <span className="text-muted-foreground">Created By</span>
+                      <span className="ml-4">{opp.company || "Unknown"}</span>
+                    </div>
 
-                <p className="text-xs text-muted-foreground line-clamp-2">
-                  DETAILS: {opp.raw?.description}
-                </p>
+                    <p className="text-xs text-muted-foreground line-clamp-2">
+                      DETAILS: {opp.raw?.description}
+                    </p>
 
-                {opp.raw?.deadline && (
-                  <p className="text-xs text-muted-foreground">
-                    Deadline: {new Date(opp.raw.deadline).toLocaleDateString()}
-                  </p>
-                )}
+                    {opp.raw?.deadline && (
+                      <p className="text-xs text-muted-foreground">
+                        Deadline:{" "}
+                        {new Date(opp.raw.deadline).toLocaleDateString()}
+                      </p>
+                    )}
 
-                {opp.raw?.amount_of_money && (
-                  <p className="text-xs text-muted-foreground">
-                    Price: {opp.raw.amount_of_money}$
-                  </p>
-                )}
+                    {opp.raw?.amount_of_money && (
+                      <p className="text-xs text-muted-foreground">
+                        Price: {opp.raw.amount_of_money}$
+                      </p>
+                    )}
 
-                <div className="flex gap-2">
-                  <Button 
-                    size="sm" 
-                    className={`text-white border-none transition-all duration-300 ${theme.buttonBg} ${theme.buttonHover} ${theme.buttonGlow}`}
-                    onClick={() => handleEdit(opp.raw)}
-                  >
-                    <Edit className="h-3 w-3 mr-1" />
-                    Edit
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    className="border-destructive text-destructive hover:bg-destructive hover:text-destructive-foreground"
-                    onClick={() => handleDelete(opp.id)}
-                  >
-                    <Trash2 className="h-3 w-3 mr-1" />
-                    Delete
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          )})}
+                    <div className="flex gap-2">
+                      <Button
+                        size="sm"
+                        className={`text-white border-none transition-all duration-300 ${theme.buttonBg} ${theme.buttonHover} ${theme.buttonGlow}`}
+                        onClick={() => handleEdit(opp.raw)}
+                      >
+                        <Edit className="h-3 w-3 mr-1" />
+                        Edit
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="border-destructive text-destructive hover:bg-destructive hover:text-destructive-foreground"
+                        onClick={() => handleDelete(opp.id)}
+                      >
+                        <Trash2 className="h-3 w-3 mr-1" />
+                        Delete
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              );
+            })
+          )}
         </div>
-
       </div>
     </AdminDashboardLayout>
   );

@@ -1,10 +1,21 @@
 import { useState, useEffect, useRef } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Plus, Calendar, X, Upload } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
@@ -19,19 +30,35 @@ interface AddProjectDialogProps {
 }
 
 const suggestedSkills = [
-  "UI&UX", "Back-End", "AI", "Front-End", "Big Data", "Flutter", "Web Dev",
-  "Social", "Photo Shop", "cyber sec", "Marketing", "Testing"
+  "UI&UX",
+  "Back-End",
+  "AI",
+  "Front-End",
+  "Big Data",
+  "Flutter",
+  "Web Dev",
+  "Social",
+  "Photo Shop",
+  "cyber sec",
+  "Marketing",
+  "Testing",
 ];
 
 const projectTypes = [
-  "Internship", "Contract", "Part-Time", "Full-Time", "Freelance"
+  "Internship",
+  "Contract",
+  "Part-Time",
+  "Full-Time",
+  "Freelance",
 ];
 
-const locationTypes = [
-  "On-site", "Remote", "Hybrid"
-];
+const locationTypes = ["On-site", "Remote", "Hybrid"];
 
-export function AddProjectDialog({ open, onOpenChange, projectToEdit }: AddProjectDialogProps) {
+export function AddProjectDialog({
+  open,
+  onOpenChange,
+  projectToEdit,
+}: AddProjectDialogProps) {
   const { profile } = useProfile();
 
   const [title, setTitle] = useState("");
@@ -76,7 +103,9 @@ export function AddProjectDialog({ open, onOpenChange, projectToEdit }: AddProje
         setSelectedSkills(reqs.split(" ").filter((s: string) => s.length > 0));
 
         setBudget(projectToEdit.amount_of_money?.toString() || "");
-        setDeadline(projectToEdit.deadline ? projectToEdit.deadline.split('T')[0] : "");
+        setDeadline(
+          projectToEdit.deadline ? projectToEdit.deadline.split("T")[0] : "",
+        );
         setDuration(projectToEdit.duration?.toString() || "");
         setImageUrl(projectToEdit.image_url || "");
       } else {
@@ -95,7 +124,6 @@ export function AddProjectDialog({ open, onOpenChange, projectToEdit }: AddProje
     }
   }, [open, projectToEdit]);
 
-
   const handleSkillAdd = (skill: string) => {
     const trimmedSkill = skill.trim();
     if (trimmedSkill && !selectedSkills.includes(trimmedSkill)) {
@@ -105,14 +133,16 @@ export function AddProjectDialog({ open, onOpenChange, projectToEdit }: AddProje
   };
 
   const handleSkillKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Enter') {
+    if (e.key === "Enter") {
       e.preventDefault();
       handleSkillAdd(currentSkill);
     }
   };
 
   const handleSkillRemove = (skillToRemove: string) => {
-    setSelectedSkills(selectedSkills.filter(skill => skill !== skillToRemove));
+    setSelectedSkills(
+      selectedSkills.filter((skill) => skill !== skillToRemove),
+    );
   };
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -126,17 +156,17 @@ export function AddProjectDialog({ open, onOpenChange, projectToEdit }: AddProje
 
     try {
       setIsUploading(true);
-      const fileExt = file.name.split('.').pop();
+      const fileExt = file.name.split(".").pop();
       const fileName = `project-${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`;
-      
+
       const { error: uploadError } = await supabase.storage
-        .from('profile_pictures')
+        .from("profile_pictures")
         .upload(fileName, file);
 
       if (uploadError) throw uploadError;
 
       const { data } = supabase.storage
-        .from('profile_pictures')
+        .from("profile_pictures")
         .getPublicUrl(fileName);
 
       setImageUrl(data.publicUrl);
@@ -149,9 +179,8 @@ export function AddProjectDialog({ open, onOpenChange, projectToEdit }: AddProje
     }
   };
 
-
   const handleSubmit = async () => {
-    if (!profile.companyId && profile.role !== 'admin') {
+    if (!profile.companyId && profile.role !== "admin") {
       toast.error("Company profile not found. Please complete your profile.");
       return;
     }
@@ -166,7 +195,9 @@ export function AddProjectDialog({ open, onOpenChange, projectToEdit }: AddProje
         amount_of_money: parseFloat(budget) || 0,
         deadline: deadline ? new Date(deadline).toISOString() : null,
         duration: parseFloat(duration) || 0,
-        image_url: imageUrl || "https://dfxghnjkyzsxdnrezoxf.supabase.co/storage/v1/object/public/profile_pictures/project-1780572092978-6ki9p6dxpt6.png",
+        image_url:
+          imageUrl ||
+          "https://dfxghnjkyzsxdnrezoxf.supabase.co/storage/v1/object/public/profile_pictures/project-1780572092978-6ki9p6dxpt6.png",
         company_id: profile.companyId || null,
         is_paid: (parseFloat(budget) || 0) > 0,
       };
@@ -174,26 +205,29 @@ export function AddProjectDialog({ open, onOpenChange, projectToEdit }: AddProje
       if (projectToEdit) {
         // Update
         const { error } = await supabase
-          .from('opportunity')
+          .from("opportunity")
           // @ts-ignore
           .update(projectData)
-          .eq('id', projectToEdit.id);
+          .eq("id", projectToEdit.id);
 
         if (error) throw error;
       } else {
         // Insert
         const { error } = await supabase
-          .from('opportunity')
+          .from("opportunity")
           // @ts-ignore
           .insert(projectData);
 
         if (error) throw error;
       }
 
-      toast.success(projectToEdit ? "Project updated successfully!" : "Project added successfully!");
-      queryClient.invalidateQueries({ queryKey: ['projects'] });
+      toast.success(
+        projectToEdit
+          ? "Project updated successfully!"
+          : "Project added successfully!",
+      );
+      queryClient.invalidateQueries({ queryKey: ["projects"] });
       onOpenChange(false);
-
     } catch (error: any) {
       console.error(error);
       toast.error(error.message || "Failed to save project");
@@ -215,7 +249,9 @@ export function AddProjectDialog({ open, onOpenChange, projectToEdit }: AddProje
           <div className="grid grid-cols-2 gap-4">
             {/* Project Title */}
             <div className="space-y-2 col-span-2">
-              <Label htmlFor="title" className="text-sm font-medium">Project Title</Label>
+              <Label htmlFor="title" className="text-sm font-medium">
+                Project Title
+              </Label>
               <Input
                 id="title"
                 value={title}
@@ -227,14 +263,18 @@ export function AddProjectDialog({ open, onOpenChange, projectToEdit }: AddProje
 
             {/* Project Type */}
             <div className="space-y-2">
-              <Label htmlFor="type" className="text-sm font-medium">Type</Label>
+              <Label htmlFor="type" className="text-sm font-medium">
+                Type
+              </Label>
               <Select value={type} onValueChange={setType}>
                 <SelectTrigger className="border-border">
                   <SelectValue placeholder="Select type" />
                 </SelectTrigger>
                 <SelectContent>
                   {projectTypes.map((t) => (
-                    <SelectItem key={t} value={t}>{t}</SelectItem>
+                    <SelectItem key={t} value={t}>
+                      {t}
+                    </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
@@ -242,14 +282,18 @@ export function AddProjectDialog({ open, onOpenChange, projectToEdit }: AddProje
 
             {/* Project Location */}
             <div className="space-y-2">
-              <Label htmlFor="location" className="text-sm font-medium">Location</Label>
+              <Label htmlFor="location" className="text-sm font-medium">
+                Location
+              </Label>
               <Select value={location} onValueChange={setLocation}>
                 <SelectTrigger className="border-border">
                   <SelectValue placeholder="Select location" />
                 </SelectTrigger>
                 <SelectContent>
                   {locationTypes.map((t) => (
-                    <SelectItem key={t} value={t}>{t}</SelectItem>
+                    <SelectItem key={t} value={t}>
+                      {t}
+                    </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
@@ -258,7 +302,9 @@ export function AddProjectDialog({ open, onOpenChange, projectToEdit }: AddProje
 
           {/* Project Description */}
           <div className="space-y-2">
-            <Label htmlFor="description" className="text-sm font-medium">Project description</Label>
+            <Label htmlFor="description" className="text-sm font-medium">
+              Project description
+            </Label>
             <Textarea
               id="description"
               value={description}
@@ -270,11 +316,17 @@ export function AddProjectDialog({ open, onOpenChange, projectToEdit }: AddProje
 
           {/* Project Image */}
           <div className="space-y-2">
-            <Label className="text-sm font-medium">Project Image (Optional)</Label>
+            <Label className="text-sm font-medium">
+              Project Image (Optional)
+            </Label>
             <div className="flex flex-col gap-4">
               {imageUrl && (
                 <div className="relative w-full h-40 rounded-md overflow-hidden border border-border">
-                  <img src={imageUrl} alt="Project preview" className="w-full h-full object-cover" />
+                  <img
+                    src={imageUrl}
+                    alt="Project preview"
+                    className="w-full h-full object-cover"
+                  />
                   <Button
                     type="button"
                     variant="destructive"
@@ -323,7 +375,9 @@ export function AddProjectDialog({ open, onOpenChange, projectToEdit }: AddProje
 
           {/* Required Skills (Tags) */}
           <div className="space-y-2">
-            <Label className="text-sm font-medium">Required skills (Type and press Enter)</Label>
+            <Label className="text-sm font-medium">
+              Required skills (Type and press Enter)
+            </Label>
             <div className="flex flex-wrap gap-2 mb-2 p-2 border rounded-md min-h-[42px] bg-background">
               {selectedSkills.map((skill) => (
                 <Badge
@@ -344,13 +398,17 @@ export function AddProjectDialog({ open, onOpenChange, projectToEdit }: AddProje
                 onChange={(e) => setCurrentSkill(e.target.value)}
                 onKeyDown={handleSkillKeyDown}
                 className="flex-1 bg-transparent border-none outline-none text-sm placeholder:text-muted-foreground min-w-[120px]"
-                placeholder={selectedSkills.length === 0 ? "Type a skill..." : ""}
+                placeholder={
+                  selectedSkills.length === 0 ? "Type a skill..." : ""
+                }
               />
             </div>
 
             {/* Suggested Skills */}
             <div className="space-y-2">
-              <Label className="text-xs text-muted-foreground">Suggested skills:</Label>
+              <Label className="text-xs text-muted-foreground">
+                Suggested skills:
+              </Label>
               <div className="flex flex-wrap gap-2">
                 {suggestedSkills.map((skill) => (
                   <Badge
@@ -370,7 +428,9 @@ export function AddProjectDialog({ open, onOpenChange, projectToEdit }: AddProje
           {/* Budget, Duration, Deadline */}
           <div className="grid grid-cols-3 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="budget" className="text-sm font-medium">Budget ($)</Label>
+              <Label htmlFor="budget" className="text-sm font-medium">
+                Budget ($)
+              </Label>
               <Input
                 id="budget"
                 type="number"
@@ -382,7 +442,9 @@ export function AddProjectDialog({ open, onOpenChange, projectToEdit }: AddProje
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="duration" className="text-sm font-medium">Duration (Days)</Label>
+              <Label htmlFor="duration" className="text-sm font-medium">
+                Duration (Days)
+              </Label>
               <Input
                 id="duration"
                 type="number"
@@ -394,7 +456,9 @@ export function AddProjectDialog({ open, onOpenChange, projectToEdit }: AddProje
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="deadline" className="text-sm font-medium">Deadline</Label>
+              <Label htmlFor="deadline" className="text-sm font-medium">
+                Deadline
+              </Label>
               <div className="relative">
                 <Input
                   id="deadline"
@@ -415,7 +479,11 @@ export function AddProjectDialog({ open, onOpenChange, projectToEdit }: AddProje
               disabled={isLoading}
               className="bg-primary hover:bg-primary/90 px-8"
             >
-              {isLoading ? "Saving..." : (projectToEdit ? "Save Changes" : "Add Project")}
+              {isLoading
+                ? "Saving..."
+                : projectToEdit
+                  ? "Save Changes"
+                  : "Add Project"}
             </Button>
           </div>
         </div>
