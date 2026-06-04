@@ -12,6 +12,7 @@ import { StatusBadge } from "@/components/ui/status-badge";
 interface Applicant {
   id: string;
   name: string;
+  project: string;
   stdYear: string;
   date: string;
   department: string;
@@ -92,6 +93,7 @@ const AdminViewApplicantPage = () => {
         
         return {
           id: app.id.toString(),
+          project: app.opportunity?.title || "Unknown Project",
           name: user?.full_name || "Unknown Applicant",
           stdYear: studentProfile?.grad_year?.toString() || "-",
           date: new Date(app.created_at).toLocaleDateString(),
@@ -141,6 +143,7 @@ const AdminViewApplicantPage = () => {
                 <tr className="border-b border-border bg-muted/30">
                   <th className="text-left py-4 px-6 text-sm font-semibold text-foreground">ID</th>
                   <th className="text-left py-4 px-6 text-sm font-semibold text-foreground">NAME</th>
+                  <th className="text-left py-4 px-6 text-sm font-semibold text-foreground">PROJECT</th>
                   <th className="text-left py-4 px-6 text-sm font-semibold text-foreground">Std-Year</th>
                   <th className="text-left py-4 px-6 text-sm font-semibold text-foreground">DATE</th>
                   <th className="text-left py-4 px-6 text-sm font-semibold text-foreground">Dep</th>
@@ -152,13 +155,13 @@ const AdminViewApplicantPage = () => {
               <tbody>
                 {loading ? (
                   <tr>
-                    <td colSpan={8} className="py-8 text-center text-muted-foreground">
+                    <td colSpan={9} className="py-8 text-center text-muted-foreground">
                       Loading applicants...
                     </td>
                   </tr>
                 ) : applicants.length === 0 ? (
                   <tr>
-                    <td colSpan={8} className="py-8 text-center text-muted-foreground">
+                    <td colSpan={9} className="py-8 text-center text-muted-foreground">
                       No applications found.
                     </td>
                   </tr>
@@ -170,6 +173,7 @@ const AdminViewApplicantPage = () => {
                     >
                       <td className="py-4 px-6 text-sm text-muted-foreground">{applicant.id}</td>
                       <td className="py-4 px-6 text-sm font-medium text-foreground">{applicant.name}</td>
+                      <td className="py-4 px-6 text-sm font-medium text-foreground">{applicant.project}</td>
                       <td className="py-4 px-6 text-sm text-muted-foreground">{applicant.stdYear}</td>
                       <td className="py-4 px-6 text-sm text-muted-foreground">{applicant.date}</td>
                       <td className="py-4 px-6 text-sm text-muted-foreground">{applicant.department}</td>

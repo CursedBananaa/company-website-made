@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Calendar, X } from "lucide-react";
+import { Plus, Calendar, X, Upload } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
@@ -43,6 +43,9 @@ export function AddProjectDialog({ open, onOpenChange, projectToEdit }: AddProje
   const [budget, setBudget] = useState("");
   const [deadline, setDeadline] = useState("");
   const [duration, setDuration] = useState("");
+  const [imageUrl, setImageUrl] = useState("");
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [isUploading, setIsUploading] = useState(false);
 
   const queryClient = useQueryClient();
   const [isLoading, setIsLoading] = useState(false);
@@ -75,6 +78,7 @@ export function AddProjectDialog({ open, onOpenChange, projectToEdit }: AddProje
         setBudget(projectToEdit.amount_of_money?.toString() || "");
         setDeadline(projectToEdit.deadline ? projectToEdit.deadline.split('T')[0] : "");
         setDuration(projectToEdit.duration?.toString() || "");
+        setImageUrl(projectToEdit.image_url || "");
       } else {
         // Add mode: Reset form
         setTitle("");
@@ -86,6 +90,7 @@ export function AddProjectDialog({ open, onOpenChange, projectToEdit }: AddProje
         setDeadline("");
         setDuration("");
         setCurrentSkill("");
+        setImageUrl("");
       }
     }
   }, [open, projectToEdit]);
@@ -110,6 +115,40 @@ export function AddProjectDialog({ open, onOpenChange, projectToEdit }: AddProje
     setSelectedSkills(selectedSkills.filter(skill => skill !== skillToRemove));
   };
 
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error("Image size should be less than 5MB");
+      return;
+    }
+
+    try {
+      setIsUploading(true);
+      const fileExt = file.name.split('.').pop();
+      const fileName = `project-${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`;
+      
+      const { error: uploadError } = await supabase.storage
+        .from('profile_pictures')
+        .upload(fileName, file);
+
+      if (uploadError) throw uploadError;
+
+      const { data } = supabase.storage
+        .from('profile_pictures')
+        .getPublicUrl(fileName);
+
+      setImageUrl(data.publicUrl);
+      toast.success("Image uploaded!");
+    } catch (error: any) {
+      toast.error(error.message || "Error uploading image");
+      console.error("Upload error:", error);
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
 
   const handleSubmit = async () => {
     if (!profile.companyId && profile.role !== 'admin') {
@@ -127,6 +166,7 @@ export function AddProjectDialog({ open, onOpenChange, projectToEdit }: AddProje
         amount_of_money: parseFloat(budget) || 0,
         deadline: deadline ? new Date(deadline).toISOString() : null,
         duration: parseFloat(duration) || 0,
+        image_url: imageUrl || "https://dfxghnjkyzsxdnrezoxf.supabase.co/storage/v1/object/public/profile_pictures/project-1780572092978-6ki9p6dxpt6.png",
         company_id: profile.companyId || null,
         is_paid: (parseFloat(budget) || 0) > 0,
       };
@@ -226,6 +266,59 @@ export function AddProjectDialog({ open, onOpenChange, projectToEdit }: AddProje
               className="min-h-[100px] border-border resize-none"
               placeholder="Describe the project details..."
             />
+          </div>
+
+          {/* Project Image */}
+          <div className="space-y-2">
+            <Label className="text-sm font-medium">Project Image (Optional)</Label>
+            <div className="flex flex-col gap-4">
+              {imageUrl && (
+                <div className="relative w-full h-40 rounded-md overflow-hidden border border-border">
+                  <img src={imageUrl} alt="Project preview" className="w-full h-full object-cover" />
+                  <Button
+                    type="button"
+                    variant="destructive"
+                    size="icon"
+                    className="absolute top-2 right-2 h-8 w-8"
+                    onClick={() => setImageUrl("")}
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+                </div>
+              )}
+              <div className="flex gap-2">
+                <Input
+                  id="imageUrl"
+                  value={imageUrl}
+                  onChange={(e) => setImageUrl(e.target.value)}
+                  className="border-border flex-1"
+                  placeholder="https://example.com/image.jpg"
+                />
+                <input
+                  type="file"
+                  ref={fileInputRef}
+                  onChange={handleImageUpload}
+                  accept="image/*"
+                  className="hidden"
+                />
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="shrink-0 gap-2"
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={isUploading}
+                >
+                  {isUploading ? (
+                    "Uploading..."
+                  ) : (
+                    <>
+                      <Upload className="h-4 w-4" />
+                      Upload
+                    </>
+                  )}
+                </Button>
+              </div>
+            </div>
           </div>
 
           {/* Required Skills (Tags) */}

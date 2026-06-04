@@ -194,7 +194,12 @@ const AdminOpportunitiesPage = () => {
           ) : opportunities?.map((opp: any, index: number) => {
             const theme = THEMES[index % THEMES.length];
             return (
-            <Card key={opp.id} className={`relative group transition-all duration-300 ${theme.cardGlow}`}>
+            <Card key={opp.id} className={`relative group transition-all duration-300 overflow-hidden ${theme.cardGlow}`}>
+              {opp.raw?.image_url && (
+                <div className="w-full h-40 overflow-hidden">
+                  <img src={opp.raw.image_url} alt={opp.title} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
+                </div>
+              )}
               <CardContent className="p-4 space-y-3">
                 <div className="flex justify-between items-start">
                   <h3 className={`font-semibold transition-all duration-300 ${theme.titleColor}`}>{opp.title}</h3>
