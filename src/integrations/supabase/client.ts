@@ -1,4 +1,4 @@
-﻿import { createClient } from '@supabase/supabase-js';
+import { createClient } from '@supabase/supabase-js';
 import type { Database } from './types';
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
@@ -12,6 +12,15 @@ export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_ANON_KEY, 
     storage: localStorage,
     persistSession: true,
     autoRefreshToken: true,
+  }
+});
+
+const SUPABASE_SERVICE_ROLE = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+
+export const supabaseAdmin = createClient<Database>(SUPABASE_URL, SUPABASE_SERVICE_ROLE, {
+  auth: {
+    persistSession: false,
+    autoRefreshToken: false,
   }
 });
 
