@@ -1,15 +1,18 @@
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Filter, ChevronDown, Eye } from "lucide-react";
+import { Filter, ChevronDown, Eye, Search } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useState } from "react";
 import { StudentDetailsDialog } from "@/components/StudentDetailsDialog";
+import { Input } from "@/components/ui/input";
 
 export default function Students() {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [selectedStudent, setSelectedStudent] = useState<any>(null);
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
 
   // Fetch students from Supabase
   const { data: students, isLoading } = useQuery({
@@ -48,6 +51,7 @@ export default function Students() {
     },
   });
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const handleViewDetails = (student: any) => {
     setSelectedStudent(student);
     setIsDetailsOpen(true);
@@ -58,6 +62,14 @@ export default function Students() {
     if (!open) setSelectedStudent(null);
   };
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const filteredStudents = students?.filter((student: any) => {
+    const name = student.user?.full_name?.toLowerCase() || "";
+    const major = student.major?.toLowerCase() || "";
+    const query = searchQuery.toLowerCase();
+    return name.includes(query) || major.includes(query);
+  });
+
   return (
     <DashboardLayout>
       <div className="space-y-6">
@@ -65,28 +77,39 @@ export default function Students() {
 
         <Card>
           <CardContent className="p-0">
-            {/* Filter Bar - kept as visual placeholder for now */}
-            <div className="flex items-center gap-4 p-4 border-b border-border bg-muted/50">
-              <Button variant="ghost" size="sm" className="text-muted-foreground">
-                <Filter className="h-4 w-4 mr-2" />
-                Filter By
-              </Button>
-              <Button variant="ghost" size="sm" className="text-muted-foreground">
-                Name
-                <ChevronDown className="h-4 w-4 ml-1" />
-              </Button>
-              <Button variant="ghost" size="sm" className="text-muted-foreground">
-                ID
-                <ChevronDown className="h-4 w-4 ml-1" />
-              </Button>
-              <Button variant="ghost" size="sm" className="text-muted-foreground">
-                Status
-                <ChevronDown className="h-4 w-4 ml-1" />
-              </Button>
-              <Button variant="ghost" size="sm" className="text-muted-foreground">
-                Department
-                <ChevronDown className="h-4 w-4 ml-1" />
-              </Button>
+            {/* Filter & Search Bar */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 border-b border-border bg-muted/50">
+              <div className="relative flex-1 max-w-sm">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder="Search by name, major..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pl-9 bg-background"
+                />
+              </div>
+              <div className="flex items-center gap-2">
+                <Button variant="ghost" size="sm" className="text-muted-foreground">
+                  <Filter className="h-4 w-4 mr-2" />
+                  Filter By
+                </Button>
+                <Button variant="ghost" size="sm" className="text-muted-foreground">
+                  Name
+                  <ChevronDown className="h-4 w-4 ml-1" />
+                </Button>
+                <Button variant="ghost" size="sm" className="text-muted-foreground">
+                  ID
+                  <ChevronDown className="h-4 w-4 ml-1" />
+                </Button>
+                <Button variant="ghost" size="sm" className="text-muted-foreground">
+                  Status
+                  <ChevronDown className="h-4 w-4 ml-1" />
+                </Button>
+                <Button variant="ghost" size="sm" className="text-muted-foreground">
+                  Department
+                  <ChevronDown className="h-4 w-4 ml-1" />
+                </Button>
+              </div>
             </div>
 
             {/* Table */}
@@ -107,16 +130,17 @@ export default function Students() {
                     <tr>
                       <td colSpan={6} className="p-8 text-center text-muted-foreground">Loading students...</td>
                     </tr>
-                  ) : students?.length === 0 ? (
+                  ) : filteredStudents?.length === 0 ? (
                     <tr>
                       <td colSpan={6} className="p-8 text-center text-muted-foreground">No students found.</td>
                     </tr>
-                  ) : students?.map((student: any) => (
+                  ) : (
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                    filteredStudents?.map((student: any) => (
                     <tr key={student.id} className="border-b border-border last:border-0 hover:bg-muted/20 transition-colors">
                       <td className="p-4 text-sm text-muted-foreground">#{student.id}</td>
                       <td className="p-4 text-sm font-medium">{student.user?.full_name || "Unknown"}</td>
                       <td className="p-4 text-sm text-muted-foreground">{student.grad_year || "N/A"}</td>
-                      {/* Using profile creation date as joined date for now */}
                       <td className="p-4 text-sm text-muted-foreground">
                         {new Date(student.created_at).toLocaleDateString()}
                       </td>
@@ -133,7 +157,7 @@ export default function Students() {
                         </Button>
                       </td>
                     </tr>
-                  ))}
+                  )))}
                 </tbody>
               </table>
             </div>

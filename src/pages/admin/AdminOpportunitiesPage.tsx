@@ -1,13 +1,14 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { AdminDashboardLayout } from "@/components/admin/DashboardLayout";
-import { FileText, Clock, Edit, Plus, Trash2 } from "lucide-react";
+import { FileText, Clock, Edit, Plus, Trash2, Search } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { useNavigate } from "react-router-dom";
 import { AddProjectDialog } from "@/components/AddProjectDialog";
+import { Input } from "@/components/ui/input";
 
 interface Opportunity {
   id: string;
@@ -94,6 +95,7 @@ const AdminOpportunitiesPage = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [isAddProjectOpen, setIsAddProjectOpen] = useState(false);
   const [editingProject, setEditingProject] = useState<any>(null);
+  const [searchQuery, setSearchQuery] = useState("");
 
   const handleDelete = async (id: string) => {
     if (window.confirm("Are you sure you want to delete this opportunity?")) {
@@ -133,9 +135,8 @@ const AdminOpportunitiesPage = () => {
             : [];
           const tags = rawTags.filter((t: string) => t.length > 0).slice(0, 3); // limit to 3 tags
 
-          // Get company name
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           const companyName = opp.company_id
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             ? (opp.company_profile as any)?.user?.full_name || "Unknown Company"
             : "Admin";
 
@@ -177,6 +178,14 @@ const AdminOpportunitiesPage = () => {
     setIsAddProjectOpen(true);
   };
 
+  const filteredOpportunities = opportunities.filter((opp) => {
+    const title = opp.title.toLowerCase();
+    const company = opp.company.toLowerCase();
+    const description = (opp.raw?.description || "").toLowerCase();
+    const query = searchQuery.toLowerCase();
+    return title.includes(query) || company.includes(query) || description.includes(query);
+  });
+
   return (
     <AdminDashboardLayout>
       <div className="space-y-6">
@@ -196,6 +205,17 @@ const AdminOpportunitiesPage = () => {
           </div>
         </div>
 
+        {/* Search Bar */}
+        <div className="relative max-w-sm">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder="Search opportunities..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="pl-9 bg-background"
+          />
+        </div>
+
         <AddProjectDialog
           open={isAddProjectOpen}
           onOpenChange={handleOpenChange}
@@ -205,10 +225,11 @@ const AdminOpportunitiesPage = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {isLoading ? (
             <p>Loading projects...</p>
-          ) : opportunities?.length === 0 ? (
+          ) : filteredOpportunities?.length === 0 ? (
             <p className="text-muted-foreground">No opportunities found.</p>
           ) : (
-            opportunities?.map((opp: any, index: number) => {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            filteredOpportunities?.map((opp: any, index: number) => {
               const theme = THEMES[index % THEMES.length];
               return (
                 <Card

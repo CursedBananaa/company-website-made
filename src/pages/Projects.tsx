@@ -2,7 +2,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 
-import { Plus, Edit, Trash2 } from "lucide-react";
+import { Plus, Edit, Trash2, Search } from "lucide-react";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { Button } from "@/components/ui/button";
@@ -11,6 +11,7 @@ import { useNavigate } from "react-router-dom";
 import { AddProjectDialog } from "@/components/AddProjectDialog";
 import { useProfile } from "@/contexts/ProfileContext";
 import { toast } from "sonner";
+import { Input } from "@/components/ui/input";
 
 const THEMES = [
   {
@@ -84,7 +85,9 @@ const THEMES = [
 export default function Projects() {
   const navigate = useNavigate();
   const [isAddProjectOpen, setIsAddProjectOpen] = useState(false);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [editingProject, setEditingProject] = useState<any>(null);
+  const [searchQuery, setSearchQuery] = useState("");
   const { profile } = useProfile();
   const queryClient = useQueryClient();
 
@@ -132,6 +135,7 @@ export default function Projects() {
     }
   };
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const handleEdit = (project: any) => {
     setEditingProject(project);
     setIsAddProjectOpen(true);
@@ -143,6 +147,14 @@ export default function Projects() {
       setEditingProject(null);
     }
   };
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const filteredProjects = projects?.filter((project: any) => {
+    const title = (project.title || "").toLowerCase();
+    const description = (project.description || "").toLowerCase();
+    const query = searchQuery.toLowerCase();
+    return title.includes(query) || description.includes(query);
+  });
 
   return (
     <DashboardLayout>
@@ -166,6 +178,17 @@ export default function Projects() {
           </div>
         </div>
 
+        {/* Search Bar */}
+        <div className="relative max-w-sm">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder="Search projects..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="pl-9 bg-background"
+          />
+        </div>
+
         <AddProjectDialog
           open={isAddProjectOpen}
           onOpenChange={handleOpenChange}
@@ -175,12 +198,13 @@ export default function Projects() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {isLoading ? (
             <p>Loading projects...</p>
-          ) : projects?.length === 0 ? (
+          ) : filteredProjects?.length === 0 ? (
             <p className="text-muted-foreground">
               No projects found for your company.
             </p>
           ) : (
-            projects?.map((project: any, index: number) => {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            filteredProjects?.map((project: any, index: number) => {
               const theme = THEMES[index % THEMES.length];
               return (
                 <Card
