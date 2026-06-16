@@ -25,6 +25,8 @@ const AdminViewApplicantPage = () => {
   const { id } = useParams<{ id: string }>();
   const [applicants, setApplicants] = useState<Applicant[]>([]);
   const [loading, setLoading] = useState(true);
+  const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [searchTerm, setSearchTerm] = useState<string>("");
   const { profile } = useProfile();
 
   const [selectedApplication, setSelectedApplication] = useState<any>(null);
@@ -135,10 +137,53 @@ const AdminViewApplicantPage = () => {
     if (!open) setSelectedApplication(null);
   };
 
+  const filteredApplicants = applicants.filter(app => {
+    const matchesStatus = statusFilter === "all" || (app.status || "").toLowerCase() === statusFilter.toLowerCase();
+    const matchesSearch = 
+      (app.name || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (app.project || "").toLowerCase().includes(searchTerm.toLowerCase());
+    return matchesStatus && matchesSearch;
+  });
+
+  const statuses = [
+    { value: "all", label: "All Statuses" },
+    { value: "pending", label: "Pending" },
+    { value: "ongoing", label: "Ongoing" },
+    { value: "accepted", label: "Accepted" },
+    { value: "completed", label: "Completed" },
+    { value: "rejected", label: "Rejected" },
+    { value: "failed", label: "Failed" },
+  ];
+
   return (
     <AdminDashboardLayout>
       <div className="space-y-6">
-        <h1 className="text-2xl font-bold text-foreground">View Applicants</h1>
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <h1 className="text-2xl font-bold text-foreground">View Applicants</h1>
+          <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+            <input
+              type="text"
+              placeholder="Search name or project..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="px-3 py-1.5 rounded-lg border border-border bg-background text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 w-full sm:w-56"
+            />
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-muted-foreground whitespace-nowrap">Status:</span>
+              <select
+                value={statusFilter}
+                onChange={(e) => setStatusFilter(e.target.value)}
+                className="px-3 py-1.5 rounded-lg border border-border bg-background text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary/20"
+              >
+                {statuses.map((s) => (
+                  <option key={s.value} value={s.value}>
+                    {s.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+        </div>
 
         <div className="admin-dashboard-card overflow-hidden p-0">
           <div className="overflow-x-auto">
@@ -184,7 +229,7 @@ const AdminViewApplicantPage = () => {
                       Loading applicants...
                     </td>
                   </tr>
-                ) : applicants.length === 0 ? (
+                ) : filteredApplicants.length === 0 ? (
                   <tr>
                     <td
                       colSpan={9}
@@ -194,7 +239,7 @@ const AdminViewApplicantPage = () => {
                     </td>
                   </tr>
                 ) : (
-                  applicants.map((applicant) => (
+                  filteredApplicants.map((applicant) => (
                     <tr
                       key={applicant.id}
                       className="border-b border-border last:border-0 hover:bg-muted/50 transition-colors"

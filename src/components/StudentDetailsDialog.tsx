@@ -7,6 +7,7 @@ import {
 } from "@/components/ui/dialog";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
+import { StatusBadge } from "@/components/ui/status-badge";
 import {
   Mail,
   Phone,
@@ -418,20 +419,10 @@ export function StudentDetailsDialog({
                         </p>
                       </div>
                       <div className="text-right">
-                        <Badge
-                          variant={
-                            ["accepted", "ongoing", "completed"].includes(
-                              app.status,
-                            )
-                              ? "default"
-                              : ["rejected", "failed"].includes(app.status)
-                                ? "destructive"
-                                : "secondary"
-                          }
+                        <StatusBadge
+                          status={app.status}
                           className="text-xs"
-                        >
-                          {app.status}
-                        </Badge>
+                        />
                         <p className="text-xs text-muted-foreground mt-1">
                           {new Date(app.created_at).toLocaleDateString()}
                         </p>

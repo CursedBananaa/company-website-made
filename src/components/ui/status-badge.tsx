@@ -10,6 +10,8 @@ type StatusType =
   | "rejected"
   | "failed"
   | "ongoing"
+  | "on going"
+  | "on_going"
   | "in_review"
   | "completed_by_company";
 
@@ -19,17 +21,19 @@ interface StatusBadgeProps {
 }
 
 const statusStyles: Record<string, string> = {
-  active: "bg-success text-success-foreground",
-  pending: "bg-pending text-pending-foreground",
-  draft: "bg-muted text-muted-foreground",
-  complete: "bg-chart-pink text-primary-foreground",
-  completed: "bg-chart-pink text-primary-foreground",
-  accepted: "bg-success/20 text-success border border-success/30",
-  ongoing: "bg-success/20 text-success border border-success/30",
-  in_review: "bg-pending text-pending-foreground",
-  completed_by_company: "bg-chart-pink/50 text-primary-foreground",
-  rejected: "bg-destructive/20 text-destructive border border-destructive/30",
-  failed: "bg-destructive text-destructive-foreground",
+  active: "admin-status-complete border border-green-200/50 dark:border-green-800/30",
+  pending: "admin-status-pending border border-amber-200/50 dark:border-amber-800/30",
+  draft: "bg-muted text-muted-foreground border border-muted-foreground/10",
+  complete: "admin-status-complete border border-green-200/50 dark:border-green-800/30",
+  completed: "admin-status-complete border border-green-200/50 dark:border-green-800/30",
+  accepted: "admin-status-approved border border-purple-200/50 dark:border-purple-800/30",
+  ongoing: "admin-status-progress border border-blue-200/50 dark:border-blue-800/30",
+  "on going": "admin-status-progress border border-blue-200/50 dark:border-blue-800/30",
+  on_going: "admin-status-progress border border-blue-200/50 dark:border-blue-800/30",
+  in_review: "admin-status-pending border border-amber-200/50 dark:border-amber-800/30",
+  completed_by_company: "admin-status-approved border border-purple-200/50 dark:border-purple-800/30",
+  rejected: "bg-destructive/10 text-destructive border border-destructive/20",
+  failed: "bg-destructive/10 text-destructive border border-destructive/20",
 };
 
 const statusLabels: Record<string, string> = {
@@ -40,6 +44,8 @@ const statusLabels: Record<string, string> = {
   completed: "Completed",
   accepted: "Accepted",
   ongoing: "Ongoing",
+  "on going": "Ongoing",
+  on_going: "Ongoing",
   in_review: "In Review",
   completed_by_company: "Pending Admin",
   rejected: "Rejected",

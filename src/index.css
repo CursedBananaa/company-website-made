@@ -30,6 +30,19 @@
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 210 40% 98%;
 
+    --success: 142.1 76.2% 36.3%;
+    --success-foreground: 355.7 100% 97.3%;
+    --warning: 38 92% 50%;
+    --warning-foreground: 48 96% 89%;
+    --pending: 38 92% 95%;
+    --pending-foreground: 38 92% 35%;
+
+    --chart-purple: 262 83.3% 57.8%;
+    --chart-pink: 322 81% 54%;
+    --chart-yellow: 47.9 95.8% 53.1%;
+    --chart-green: 142.1 76.2% 36.3%;
+    --chart-blue: 221.2 83.2% 53.3%;
+
     --border: 214.3 31.8% 91.4%;
     --input: 214.3 31.8% 91.4%;
     --ring: 237 30% 46%;
@@ -70,6 +83,19 @@
 
     --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 0 0% 98%;
+
+    --success: 142.1 70.2% 45%;
+    --success-foreground: 144 61% 95%;
+    --warning: 38 92% 50%;
+    --warning-foreground: 48 96% 10%;
+    --pending: 38 92% 15%;
+    --pending-foreground: 38 92% 75%;
+
+    --chart-purple: 250 95% 75%;
+    --chart-pink: 340 75% 65%;
+    --chart-yellow: 45 90% 65%;
+    --chart-green: 140 70% 50%;
+    --chart-blue: 210 90% 60%;
 
     --border: 240 3.7% 15.9%;
     --input: 240 3.7% 15.9%;
@@ -147,6 +173,14 @@
   .dark {
     --sidebar: 240 10% 6%;
     --sidebar-border: 240 3.7% 15.9%;
+    --status-progress: 237 75% 70%;
+    --status-progress-bg: 237 55% 15%;
+    --status-complete: 142 70% 60%;
+    --status-complete-bg: 142 70% 12%;
+    --status-pending: 38 92% 65%;
+    --status-pending-bg: 38 92% 12%;
+    --status-approved: 262 83% 75%;
+    --status-approved-bg: 262 83% 15%;
   }
 
   .bg-sidebar { background-color: hsl(var(--sidebar)); }

@@ -7,6 +7,7 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { StatusBadge } from "@/components/ui/status-badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { FileText, User, Check, X, Download, ExternalLink } from "lucide-react";
 import { toast } from "sonner";
@@ -203,22 +204,7 @@ export function ApplicationDetailsDialog({
             <span className="truncate">
               Application for {opportunity?.title}
             </span>
-            <Badge
-              variant={
-                application.status === "accepted" ||
-                application.status === "completed" ||
-                application.status === "ongoing"
-                  ? "default"
-                  : application.status === "rejected" ||
-                      application.status === "failed"
-                    ? "destructive"
-                    : application.status === "in_review"
-                      ? "secondary"
-                      : "secondary"
-              }
-            >
-              {application.status}
-            </Badge>
+            <StatusBadge status={application.status} />
           </DialogTitle>
         </DialogHeader>
 
