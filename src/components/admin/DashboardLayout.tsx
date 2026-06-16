@@ -20,6 +20,7 @@ import {
 } from "./NotificationsPanel";
 import { useProfile } from "@/contexts/ProfileContext";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import { GlobalSearch } from "../layout/GlobalSearch";
 
 interface SidebarProps {
   children: React.ReactNode;
@@ -193,26 +194,7 @@ export function AdminDashboardLayout({ children }: SidebarProps) {
             >
               <Menu className="h-5 w-5 text-muted-foreground" />
             </button>
-            <div className="relative">
-              <input
-                type="text"
-                placeholder="Search"
-                className="w-48 md:w-80 h-10 pl-10 pr-4 rounded-lg border border-input bg-background text-sm focus:outline-none focus:ring-2 focus:ring-ring"
-              />
-              <svg
-                className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-                />
-              </svg>
-            </div>
+            <GlobalSearch />
           </div>
           <div className="flex items-center gap-4">
             <ThemeToggle />

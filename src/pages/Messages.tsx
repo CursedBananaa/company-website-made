@@ -12,6 +12,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { toast } from "sonner";
 import { useProfile } from "@/contexts/ProfileContext";
 import { supabase } from "@/integrations/supabase/client";
+import { useSearchParams } from "react-router-dom";
 
 interface Contact {
   id: string; // The other user's id
@@ -71,6 +72,7 @@ const sharedDocuments = [
 
 export default function Messages() {
   const { profile } = useProfile();
+  const [searchParams] = useSearchParams();
   const [contacts, setContacts] = useState<Contact[]>([]);
   const [chatMessages, setChatMessages] = useState<Message[]>([]);
   const [groups, setGroups] = useState<Group[]>([]);
@@ -188,6 +190,18 @@ export default function Messages() {
     });
 
     setContacts(formattedContacts);
+    
+    // Auto-select contact from URL param (?userId=X)
+    const targetUserId = searchParams.get("userId");
+    if (targetUserId) {
+      const target = formattedContacts.find((c) => c.id === targetUserId);
+      if (target) {
+        setSelectedContact(target);
+        setSelectedGroup(null);
+        return;
+      }
+    }
+    
     if (formattedContacts.length > 0) {
       setSelectedContact(prev => prev ? formattedContacts.find(c => c.id === prev.id) || formattedContacts[0] : formattedContacts[0]);
     }
@@ -210,6 +224,17 @@ export default function Messages() {
     };
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [profile.userId]);
+
+  // When URL ?userId= changes (e.g. navigating from search), auto-select that contact
+  useEffect(() => {
+    const targetUserId = searchParams.get("userId");
+    if (!targetUserId || contacts.length === 0) return;
+    const target = contacts.find((c) => c.id === targetUserId);
+    if (target) {
+      setSelectedContact(target);
+      setSelectedGroup(null);
+    }
+  }, [searchParams, contacts]);
 
   useEffect(() => {
     if (!selectedContact?.chatId) {

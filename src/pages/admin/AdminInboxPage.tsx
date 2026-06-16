@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import { useSearchParams } from "react-router-dom";
 import { AdminDashboardLayout } from "@/components/admin/DashboardLayout";
 import { Search, Phone, Video, Send, Paperclip, Image, CheckCheck, Plus, Mic, FileText, ChevronLeft } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -39,6 +40,7 @@ interface Message {
 }
 
 const AdminInboxPage = () => {
+  const [searchParams] = useSearchParams();
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [selectedConversation, setSelectedConversation] = useState<Conversation | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
@@ -157,6 +159,17 @@ const AdminInboxPage = () => {
         });
 
         setConversations(formattedChats);
+        
+        // Auto-select contact from URL param (?userId=X)
+        const targetUserId = searchParams.get("userId");
+        if (targetUserId) {
+          const target = formattedChats.find((c) => c.id === targetUserId);
+          if (target) {
+            setSelectedConversation(target);
+            return;
+          }
+        }
+
         if (formattedChats.length > 0 && !selectedConversation) {
           setSelectedConversation(formattedChats[0]);
         }
@@ -176,6 +189,16 @@ const AdminInboxPage = () => {
     };
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // When URL ?userId= changes (e.g. navigating from search), auto-select that contact
+  useEffect(() => {
+    const targetUserId = searchParams.get("userId");
+    if (!targetUserId || conversations.length === 0) return;
+    const target = conversations.find((c) => c.id === targetUserId);
+    if (target) {
+      setSelectedConversation(target);
+    }
+  }, [searchParams, conversations]);
 
   // Fetch messages and subscribe to realtime
   useEffect(() => {

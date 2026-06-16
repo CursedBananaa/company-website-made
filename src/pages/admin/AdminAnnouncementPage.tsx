@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { AdminDashboardLayout } from "@/components/admin/DashboardLayout";
 import { Edit, Trash2, Plus } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
@@ -14,6 +14,8 @@ interface Announcement {
 }
 
 const AdminAnnouncementPage = () => {
+  const [searchParams] = useSearchParams();
+  const highlightId = searchParams.get("highlight");
   const [announcements, setAnnouncements] = useState<Announcement[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const navigate = useNavigate();
@@ -21,6 +23,17 @@ const AdminAnnouncementPage = () => {
   useEffect(() => {
     fetchAnnouncements();
   }, []);
+
+  useEffect(() => {
+    if (highlightId && announcements.length > 0) {
+      setTimeout(() => {
+        const element = document.getElementById(`announcement-${highlightId}`);
+        if (element) {
+          element.scrollIntoView({ behavior: "smooth", block: "center" });
+        }
+      }, 300);
+    }
+  }, [highlightId, announcements]);
 
   const fetchAnnouncements = async () => {
     try {
@@ -65,8 +78,13 @@ const AdminAnnouncementPage = () => {
           ) : (
             announcements.map((announcement) => (
               <div
+                id={`announcement-${announcement.id}`}
                 key={announcement.id}
-                className="bg-card border border-border rounded-lg p-5 flex items-start justify-between gap-4"
+                className={`bg-card border p-5 flex items-start justify-between gap-4 rounded-lg transition-all duration-1000 ${
+                  highlightId === announcement.id.toString()
+                    ? "ring-2 ring-primary bg-primary/5 border-primary shadow-lg scale-[1.01]"
+                    : "border-border"
+                }`}
               >
                 {announcement.image_url && (
                   <div className="shrink-0">

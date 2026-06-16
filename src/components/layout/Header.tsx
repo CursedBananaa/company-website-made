@@ -1,10 +1,10 @@
-import { Search, ChevronDown, LogOut } from "lucide-react";
-import { Input } from "@/components/ui/input";
+import { ChevronDown, LogOut } from "lucide-react";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { NotificationDropdown } from "@/components/NotificationDropdown";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Link, useNavigate } from "react-router-dom";
 import { useProfile } from "@/contexts/ProfileContext";
+import { GlobalSearch } from "./GlobalSearch";
 
 export function Header() {
   const { profile, signOut } = useProfile();
@@ -17,13 +17,7 @@ export function Header() {
 
   return (
     <header className="h-16 bg-card border-b border-border flex items-center justify-between px-6">
-      <div className="relative w-80">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-        <Input
-          placeholder="Search"
-          className="pl-10 bg-muted border-0 focus-visible:ring-1 focus-visible:ring-primary"
-        />
-      </div>
+      <GlobalSearch />
       <div className="flex items-center gap-2">
         <ThemeToggle />
         <NotificationDropdown />

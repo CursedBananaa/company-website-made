@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import { AdminDashboardLayout } from "@/components/admin/DashboardLayout";
 import { FileText, Clock, Edit, Plus, Trash2, Search } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
@@ -91,11 +91,24 @@ const THEMES = [
 
 const AdminOpportunitiesPage = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const highlightId = searchParams.get("highlight");
   const [opportunities, setOpportunities] = useState<Opportunity[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isAddProjectOpen, setIsAddProjectOpen] = useState(false);
   const [editingProject, setEditingProject] = useState<any>(null);
   const [searchQuery, setSearchQuery] = useState("");
+
+  useEffect(() => {
+    if (highlightId && opportunities.length > 0) {
+      setTimeout(() => {
+        const element = document.getElementById(`project-${highlightId}`);
+        if (element) {
+          element.scrollIntoView({ behavior: "smooth", block: "center" });
+        }
+      }, 300);
+    }
+  }, [highlightId, opportunities]);
 
   const handleDelete = async (id: string) => {
     if (window.confirm("Are you sure you want to delete this opportunity?")) {
@@ -234,7 +247,12 @@ const AdminOpportunitiesPage = () => {
               return (
                 <Card
                   key={opp.id}
-                  className={`relative group transition-all duration-300 overflow-hidden ${theme.cardGlow}`}
+                  id={`project-${opp.id}`}
+                  className={`relative group transition-all duration-1000 overflow-hidden ${theme.cardGlow} ${
+                    highlightId === opp.id.toString()
+                      ? "ring-4 ring-primary border-primary bg-primary/5 scale-[1.02] shadow-xl"
+                      : ""
+                  }`}
                 >
                   {opp.raw?.image_url && (
                     <div className="w-full h-40 overflow-hidden">

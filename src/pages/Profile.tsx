@@ -10,9 +10,15 @@ import { Camera, Mail, Phone, MapPin, Briefcase, Save } from "lucide-react";
 import { toast } from "sonner";
 import { useProfile } from "@/contexts/ProfileContext";
 import { supabase } from "@/integrations/supabase/client";
+import { Navigate } from "react-router-dom";
 
 export default function Profile() {
   const { profile, updateProfile } = useProfile();
+  
+  if (profile.role === 'admin') {
+    return <Navigate to="/admin/profile" replace />;
+  }
+
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleSave = () => {

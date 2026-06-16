@@ -1,5 +1,5 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 
 import { Plus, Edit, Trash2, Search } from "lucide-react";
@@ -7,7 +7,7 @@ import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { AddProjectDialog } from "@/components/AddProjectDialog";
 import { useProfile } from "@/contexts/ProfileContext";
 import { toast } from "sonner";
@@ -84,6 +84,8 @@ const THEMES = [
 
 export default function Projects() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const highlightId = searchParams.get("highlight");
   const [isAddProjectOpen, setIsAddProjectOpen] = useState(false);
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [editingProject, setEditingProject] = useState<any>(null);
@@ -115,6 +117,17 @@ export default function Projects() {
     },
     enabled: !!profile.companyId,
   });
+
+  useEffect(() => {
+    if (highlightId && projects && projects.length > 0) {
+      setTimeout(() => {
+        const element = document.getElementById(`project-${highlightId}`);
+        if (element) {
+          element.scrollIntoView({ behavior: "smooth", block: "center" });
+        }
+      }, 300);
+    }
+  }, [highlightId, projects]);
 
   const handleDelete = async (id: number) => {
     if (!confirm("Are you sure you want to delete this project?")) return;
@@ -209,7 +222,12 @@ export default function Projects() {
               return (
                 <Card
                   key={project.id}
-                  className={`relative group transition-all duration-300 overflow-hidden ${theme.cardGlow}`}
+                  id={`project-${project.id}`}
+                  className={`relative group transition-all duration-1000 overflow-hidden ${theme.cardGlow} ${
+                    highlightId === project.id.toString()
+                      ? "ring-4 ring-primary border-primary bg-primary/5 scale-[1.02] shadow-xl"
+                      : ""
+                  }`}
                 >
                   {project.image_url && (
                     <div className="w-full h-40 overflow-hidden">

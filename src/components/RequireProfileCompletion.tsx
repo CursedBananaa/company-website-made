@@ -32,6 +32,17 @@ export const RequireProfileCompletion = ({ children }: { children: React.ReactNo
       return <Navigate to="/auth" replace />;
   }
 
+  if (profile.role === 'admin') {
+      const getAdminPath = (path: string): string => {
+        if (path.startsWith('/messages')) return `/admin/inbox${location.search}`;
+        if (path.startsWith('/students')) return '/admin/table';
+        if (path.startsWith('/projects')) return '/admin/opportunities';
+        if (path.startsWith('/settings')) return '/admin/settings';
+        return '/admin';
+      };
+      return <Navigate to={getAdminPath(location.pathname)} replace />;
+  }
+
   if (shouldRedirectToProfile) {
       return <Navigate to="/profile" replace />;
   }
