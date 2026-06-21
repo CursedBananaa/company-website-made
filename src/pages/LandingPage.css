@@ -4,7 +4,9 @@
   font-family: 'Pecita';
   src: url('https://db.onlinewebfonts.com/t/5e605ff6994ce0e533aaf6cd51c6a33f.woff2') format('woff2');
 }
-
+html {
+  scroll-behavior: smooth;
+}
 
 .landing-page {
   font-family: 'Salsa', cursive;

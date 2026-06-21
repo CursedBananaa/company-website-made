@@ -18,11 +18,11 @@ export default function LandingPage() {
         <nav className="navbar">
           <div className="logo-pecitalanding">Sha8lny</div>
           <div className="nav-links">
-            <a href="#">Home</a>
-            <a href="#">Categories</a>
-            <a href="#">Feature</a>
-            <a href="#">About us !</a>
-            <a href="#">FAQ</a>
+            <a href="#home">Home</a>
+            <a href="#categories">Categories</a>
+            <a href="#features">Feature</a>
+            <a href="#about">About us !</a>
+            <a href="#faq">FAQ</a>
           </div>
           <div className="nav-actions">
             <ThemeToggle />
@@ -40,7 +40,7 @@ export default function LandingPage() {
           </div>
         </nav>
 
-        <section className="hero">
+        <section className="hero" id="home">
           <div style={{ width: '100%', height: '100%', position: 'absolute', top: 0, left: 0, zIndex: 0 }}>
             <Antigravity
               count={300}
@@ -83,7 +83,7 @@ export default function LandingPage() {
           </div>
         </section>
 
-        <section className="features">
+        <section className="features" id="features">
           <h2>Why Choose Us</h2>
           <p className="subtitle">Our membership management software provides full automation of membership</p>
 
@@ -133,7 +133,7 @@ export default function LandingPage() {
           </div>
         </section>
 
-        <section className="categories-section">
+        <section className="categories-section" id="categories">
           <h2>Categories</h2>
           <div className="category-cards">
             <div className="category-card">
@@ -151,7 +151,7 @@ export default function LandingPage() {
           </div>
         </section>
 
-        <section className="app-showcase">
+        <section className="app-showcase" id="about">
           <div className="app-showcase-content">
             <div className="app-text-column">
               <h2>Discover, Apply, and Connecting to Real-World <span className="highlight-text-blue">Opportunities.</span></h2>
@@ -231,7 +231,7 @@ export default function LandingPage() {
           </div>
         </section>
 
-        <footer className="landing-footer">
+        <footer className="landing-footer" id="faq">
           <div className="footer-content">
             <div className="footer-columns">
               <div className="footer-column">
