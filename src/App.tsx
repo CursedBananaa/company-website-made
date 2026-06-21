@@ -35,6 +35,8 @@ import AdminTrainingSubmissionsPage from "./pages/admin/AdminTrainingSubmissions
 
 const queryClient = new QueryClient();
 
+const basename = import.meta.env.BASE_URL.replace(/\/$/, "");
+
 const App = () => (
   <ThemeProvider defaultTheme="light" storageKey="dashboard-theme">
     <QueryClientProvider client={queryClient}>
@@ -42,7 +44,7 @@ const App = () => (
         <TooltipProvider>
           <Toaster />
           <Sonner />
-          <BrowserRouter basename={import.meta.env.BASE_URL}>
+          <BrowserRouter basename={basename}>
             <Routes>
               {/* ── Public ─────────────────────────────────── */}
               <Route path="/" element={<LandingPage />} />
