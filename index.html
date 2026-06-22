@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sha8lny</title>
+  <meta name="description" content="Sha8lny" />
+  <meta name="author" content="Sha8lny" />
+
+  <meta property="og:title" content="Sha8lny" />
+  <meta property="og:description" content="Sha8lny" />
+  <meta property="og:type" content="website" />
+  <meta property="og:image" content="/placeholder.svg" />
+
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:site" content="@Sha8lny" />
+  <meta name="twitter:image" content="/placeholder.svg" />
+  <link rel="icon" id="dynamic-favicon" type="image/svg+xml" href="/company-website-made/favicon.svg?v=2" />
+  <!-- GitHub Pages SPA: restore the path that was saved in 404.html redirect -->
+  <script>
+    (function() {
+      var redirect = sessionStorage.redirect;
+      delete sessionStorage.redirect;
+      if (redirect && redirect !== location.href) {
+        history.replaceState(null, null, redirect);
+      }
+    })();
+    // Also handle the ?/ query string approach
+    (function(l) {
+      if (l.search[1] === '/') {
+        var decoded = l.search.slice(1).split('&').map(function(s) {
+          return s.replace(/~and~/g, '&');
+        });
+        window.history.replaceState(
+          null, null,
+          l.pathname.slice(0, -1) + decoded[0] +
+          (decoded[1] ? '?' + decoded[1] : '') +
+          l.hash
+        );
+      }
+    }(window.location));
+  </script>
+  <script>
+    window.addEventListener('load', () => {
+      // Force font load if not already triggered
+      const font = new FontFace('Pecita', 'url(https://db.onlinewebfonts.com/t/5e605ff6994ce0e533aaf6cd51c6a33f.woff2)');
+      font.load().then((loadedFont) => {
+        document.fonts.add(loadedFont);
+        
+        const canvas = document.createElement('canvas');
+        canvas.width = 64;
+        canvas.height = 64;
+        const ctx = canvas.getContext('2d');
+        
+        ctx.font = '50px Pecita';
+        ctx.fillStyle = '#53599A';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        
+        ctx.shadowColor = 'rgba(83, 89, 154, 0.6)';
+        ctx.shadowBlur = 6;
+        
+        // Draw the S slightly offset to account for cursive leaning
+        ctx.fillText('S', 32, 36);
+        
+        const link = document.getElementById('dynamic-favicon');
+        if (link) {
+          link.type = 'image/png';
+          link.href = canvas.toDataURL('image/png');
+        }
+      }).catch(console.error);
+    });
+  </script>
+  <script type="module" crossorigin src="/company-website-made/assets/index-OmrXPgR1.js"></script>
+  <link rel="stylesheet" crossorigin href="/company-website-made/assets/index-BtpDCae4.css">
+</head>
+
+<body>
+  <div id="root"></div>
+</body>
+
+</html>
